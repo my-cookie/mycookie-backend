@@ -138,7 +138,10 @@ class NicknameConfirm(APIView) :
         copy_data['user'] = user.id
         serializer = serializers.NicknameConfirmSerializer(data=copy_data)
         serializer.is_valid(raise_exception=True)
-         
+        
+        if '사라진쿠키' in request.data['nickname']:
+            return Response(data={'error':'someone already got this nickname'}, status=status.HTTP_204_NO_CONTENT)
+        
         if TemporalNickname.objects.filter(nickname = request.data['nickname']).exists():
             return Response(data={'error':'someone already got this nickname'}, status=status.HTTP_204_NO_CONTENT)
         elif User.objects.filter(nickname = request.data['nickname']).exists(): 

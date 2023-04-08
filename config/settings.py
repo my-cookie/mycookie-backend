@@ -40,6 +40,9 @@ KAKAO_REST_API_KEY = secrets["kakao_rest_api_key"]
 # Application definition
 
 INSTALLED_APPS = [
+    #채팅
+    "daphne",
+    #장고기본
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -54,10 +57,13 @@ INSTALLED_APPS = [
     "corsheaders",
     #기타
     'django_crontab',
+    #채팅
+    "channels",
     #앱
     "users.apps.UsersConfig",
     'flavors.apps.FlavorsConfig',
     'myflavors.apps.MyflavorsConfig',
+    'msgs.apps.MsgsConfig',
 ]
 
 CRONJOBS = [
@@ -103,6 +109,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+#채팅
+ASGI_APPLICATION = "config.asgi.application"    
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': "channels.layers.InMemoryChannelLayer"
+        }
+    }
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -222,3 +235,46 @@ CORS_ALLOW_CREDENTIALS = True #쿠키가 cross-site HTTP 요청에 포함될 수
 
 #커스텀유저
 AUTH_USER_MODEL = "users.User"
+
+#쿼리기록
+LOGGING = {
+    'disable_existing_loggers': False,
+    'version': 1,
+    'formatters': {
+         'verbose': {
+            'format': '{asctime} {levelname} {message}',
+            'style': '{'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class'     : 'logging.StreamHandler',
+            'formatter' : 'verbose',
+            'level'     : 'DEBUG',
+        },
+        'file': {
+            'level'     : 'DEBUG',
+            'class'     : 'logging.FileHandler',
+            'formatter' : 'verbose',
+            'filename'  : 'debug.log',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers' : ['console','file'],
+            'level'    : 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
+# Cache
+CACHES = {  
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1", # 1번 DB
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
