@@ -9,10 +9,3 @@ websocket_urlpatterns = [
     re_path(r'ws/msg/(?P<room_name>\w+)/$', MessegeRoomConsumer.as_asgi()),
 ]
 
-application = ProtocolTypeRouter({
-    'websocket': AuthMiddlewareStack(
-            URLRouter(        
-                    websocket_urlpatterns
-            )
-        )
-})
