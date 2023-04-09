@@ -110,12 +110,15 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 #채팅
-ASGI_APPLICATION = "config.asgi.application"    
+ASGI_APPLICATION = "config.routing.application"    
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': "channels.layers.InMemoryChannelLayer"
-        }
-    }
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -247,11 +250,11 @@ LOGGING = {
         },
     },
     'handlers': {
-        'console': {
-            'class'     : 'logging.StreamHandler',
-            'formatter' : 'verbose',
-            'level'     : 'DEBUG',
-        },
+        # 'console': {
+        #     'class'     : 'logging.StreamHandler',
+        #     'formatter' : 'verbose',
+        #     'level'     : 'DEBUG',
+        # },
         'file': {
             'level'     : 'DEBUG',
             'class'     : 'logging.FileHandler',
@@ -261,7 +264,7 @@ LOGGING = {
     },
     'loggers': {
         'django.db.backends': {
-            'handlers' : ['console','file'],
+            'handlers' : ['file'],
             'level'    : 'DEBUG',
             'propagate': False,
         },

@@ -36,7 +36,7 @@ class MessegeRoomConsumer(WebsocketConsumer):
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
-                    'type': 'message',
+                    'type': 'chat_message',
                     'msg_id': msg_id,
                     'sender_uuid': sender_uuid,
                     'is_read': is_read
@@ -51,7 +51,7 @@ class MessegeRoomConsumer(WebsocketConsumer):
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
-                    'type': 'message',
+                    'type': 'chat_message',
                     'msg_id': msg_id,
                     'receiver_uuid': receiver_uuid
                 }
@@ -59,7 +59,7 @@ class MessegeRoomConsumer(WebsocketConsumer):
         
         #프론트에서 메시지 보낼 때 보낸 즉시 roomname을 수신자에서 발신자의 것으로 바꾸어야한다.
 
-    def send_message(self, event):
+    def chat_message(self, event):    #in comming messate의 "type" 과 동일한 함수 이름
         # Receive message from room group
         
         # 메시지 읽음 처리: 프론트에서 해당 메시지 번호에 대한 디스플레이를 읽음으로 바꾼다
