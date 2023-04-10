@@ -9,7 +9,7 @@ from django.db import transaction
 from django.core.cache import cache
 #db저장과 동시에 성공여부를 반환한다. 성공일 시 프론트에서 websocket요청
 
-class FlavorConfirm(APIView) :
+class SendMsgView(APIView) :
     @transaction.atomic
     def post(self, request):
         user_id = 7
@@ -31,6 +31,7 @@ class FlavorConfirm(APIView) :
 
         try:
             receiver = User.objects.get(id=copy_data['receiver'])
+           
             if receiver.is_active == False:
                 return Response(data={'error':'this receiver is inactive'}, status=status.HTTP_406_NOT_ACCEPTABLE)
                 
@@ -44,16 +45,18 @@ class FlavorConfirm(APIView) :
             serializer = serializers.MessageSerializer(data=copy_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            receiver_uuid = receiver.uuid
-            return Response(data={'msg_id':serializer.data['id'],'receiver_uuid': receiver_uuid,'is_success':True, 'remain': 2-count}, status=status.HTTP_201_CREATED)
+            
+            return Response(data={'msg_id' : serializer.data['id'], "receiver_nickname":receiver.nickname,"is_success" : serializer.data["is_success"], 'receiver_uuid': receiver.uuid, 'remain': 2-count}, status=status.HTTP_201_CREATED)
             
         else:
             serializer = serializers.MessageSerializer(data=copy_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(data={'is_success':False, 'remain': 2-count}, status=status.HTTP_201_CREATED)
-        
-        
+            
+            return Response(data={"receiver_nickname":receiver.nickname,"receiver":serializer.data['receiver'], "content": serializer.data['content'], "is_anonymous": serializer.data['is_anonymous'],"is_success" : False, 'remain': 2-count}, status=status.HTTP_201_CREATED)
+
+            
+            
 class ReadMessage(APIView) :
 
     def post(self, request):
