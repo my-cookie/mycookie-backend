@@ -253,16 +253,24 @@ AUTH_USER_MODEL = "users.User"
 LOGGING = {
     'disable_existing_loggers': False,
     'version': 1,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
     'formatters': {
          'verbose': {
             'format': '{asctime} {levelname} {message}',
             'style': '{'
         },
-         'django.server': {
-            '()': 'django.utils.log.ServerFormatter',
-            'format': '[{server_time}] {message}',
-            'style': '{',
-        },
+        #  'django.server': {
+        #     '()': 'django.utils.log.ServerFormatter',
+        #     'format': '[{server_time}] {message}',
+        #     'style': '{',
+        # },
     },
     'handlers': {
         
@@ -270,14 +278,18 @@ LOGGING = {
             'level'     : 'DEBUG',
             'class'     : 'logging.FileHandler',
             'formatter' : 'verbose',
-            'filename'  : 'debug.log',
-            'maxBytes': 1024*1024*5,  # 5 MB
+            'filters': ['require_debug_true'],
+            'filename'  : 'query.log',
+            # 'maxBytes': 1024*1024*5,  # 5 MB
         },
-        'django.server': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'django.server',
-        },
+        # 'django.server': {
+        #     'level': 'INFO',
+        #     'class': 'logging.StreamHandler',
+        #     'formatter': 'django.server',
+        #     'filters': ['require_debug_false'],
+        #     'filename'  : 'debug.log',
+        #     'maxBytes': 1024*1024*5,  # 5 MB
+        # },
     },
     'loggers': {
         'django.db.backends': {
@@ -285,11 +297,11 @@ LOGGING = {
             'level'    : 'DEBUG',
             'propagate': False,
         },
-         'django.server': {
-            'handlers': ['django.server'],
-            'level': 'INFO',
-            'propagate': False,
-        },
+        #  'django.server': {
+        #     'handlers': ['django.server'],
+        #     'level': 'INFO',
+        #     'propagate': False,
+        # },
     },
 }
 

@@ -105,7 +105,7 @@ class KakaoLoginView(APIView) :
                 return Response(data={'error' : 'banned user'}, status=status.HTTP_400_BAD_REQUEST)
                 # 정지된 유저이다.
             else:
-                return Response(data={'error': 'non-info user','user_uuid':user.uuid}, status=status.HTTP_204_NO_CONTENT)
+                return Response(data={'error': 'non-info user','user_uuid':user.uuid}, status=status.HTTP_206_PARTIAL_CONTENT)
                 # 등록된 유저인데 inactive 상태이면 프론트에서 정보입력 페이지로 가야한다.
             
         except User.DoesNotExist: 
@@ -140,12 +140,12 @@ class NicknameConfirm(APIView) :
         serializer.is_valid(raise_exception=True)
         
         if '사라진쿠키' in request.data['nickname']:
-            return Response(data={'error':'someone already got this nickname'}, status=status.HTTP_204_NO_CONTENT)
+            return Response(data={'error':'someone already got this nickname'}, status=status.HTTP_206_PARTIAL_CONTENT)
         
         if TemporalNickname.objects.filter(nickname = request.data['nickname']).exists():
-            return Response(data={'error':'someone already got this nickname'}, status=status.HTTP_204_NO_CONTENT)
+            return Response(data={'error':'someone already got this nickname'}, status=status.HTTP_206_PARTIAL_CONTENT)
         elif User.objects.filter(nickname = request.data['nickname']).exists(): 
-            return Response(data={'error':'someone already got this nickname'}, status=status.HTTP_204_NO_CONTENT)
+            return Response(data={'error':'someone already got this nickname'}, status=status.HTTP_206_PARTIAL_CONTENT)
         else:
             serializer.save()
             return Response(data={'success':'This nickname is usable'}, status=status.HTTP_200_OK)         
@@ -188,9 +188,21 @@ class UserInfoRegisterView(APIView) :
             user.last_login = timezone.now()
             user.save()
             return login(user)   
-    
 
-             
+class NicknameSearchView(APIView) :
+    def get(self, request):
+        
+        if not 'nickname' in request.data:
+            return Response(data={'error' : 'nickname is required'}, status=status.HTTP_400_BAD_REQUEST) 
+
+        users = User.objects.filter(nickname__contains = request.data['nickname']) 
+        serializer = serializers.UserNickSearchSerializer(users, many=True)
+        print(len(serializer.data))
+        if len(serializer.data) == 0:
+            return Response(data='일치하는 유저가 없어요', status=status.HTTP_206_PARTIAL_CONTENT)
+        return Response(data=serializer.data, status=status.HTTP_200_OK) 
+        
+           
              
              
 
