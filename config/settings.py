@@ -262,46 +262,47 @@ LOGGING = {
         },
     },
     'formatters': {
-         'verbose': {
+        'verbose': {
             'format': '{asctime} {levelname} {message}',
             'style': '{'
         },
-        #  'django.server': {
-        #     '()': 'django.utils.log.ServerFormatter',
-        #     'format': '[{server_time}] {message}',
-        #     'style': '{',
-        # },
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
+        'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[{server_time}] {message}',
+            'style': '{',
+        },
     },
     'handlers': {
-        
-        'file': {
-            'level'     : 'DEBUG',
+        'file_db': {
+            'level'     : 'DEBUG',   
             'class'     : 'logging.FileHandler',
+            'filename'  : BASE_DIR /'query.log',
             'formatter' : 'verbose',
             'filters': ['require_debug_true'],
-            'filename'  : 'query.log',
-            # 'maxBytes': 1024*1024*5,  # 5 MB
         },
-        # 'django.server': {
-        #     'level': 'INFO',
-        #     'class': 'logging.StreamHandler',
-        #     'formatter': 'django.server',
-        #     'filters': ['require_debug_false'],
-        #     'filename'  : 'debug.log',
-        #     'maxBytes': 1024*1024*5,  # 5 MB
-        # },
+        'file_server': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'debug.log',
+            'maxBytes': 1024*1024*5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'standard',
+            'filters': ['require_debug_false'],
+        },
     },
     'loggers': {
+        'django': {
+            'handlers': ['file_server'],
+            'level': 'INFO',
+        },
         'django.db.backends': {
-            'handlers' : ['file'],
+            'handlers' : ['file_db'],
             'level'    : 'DEBUG',
             'propagate': False,
         },
-        #  'django.server': {
-        #     'handlers': ['django.server'],
-        #     'level': 'INFO',
-        #     'propagate': False,
-        # },
     },
 }
 
