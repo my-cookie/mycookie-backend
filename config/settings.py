@@ -17,6 +17,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -87,6 +88,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -168,7 +170,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
-
 STATIC_URL = "static/"
 
 # Default primary key field type
@@ -222,19 +223,28 @@ SIMPLE_JWT = {
     # Cookie name. Enables cookies if value is set.
     'AUTH_COOKIE_REFRESH': 'refresh',
     # A string like "example.com", or None for standard domain cookie. 나중에 client domain 주소로 수정
-    'AUTH_COOKIE_DOMAIN': '.tabspace.site',
+    'AUTH_COOKIE_DOMAIN': None,
     # # Whether the auth cookies should be secure (https:// only).
     'AUTH_COOKIE_SECURE': True, 
     # # Http only cookie flag.It's not fetch by javascript.
     'AUTH_COOKIE_HTTP_ONLY': False,
     'AUTH_COOKIE_PATH': '/',        # The path of the auth cookie.
     # # Whether to set the flag restricting cookie leaks on cross-site requests. This can be 'Lax', 'Strict', or None to disable the flag.
-    'AUTH_COOKIE_SAMESITE': 'Lax', # TODO: Modify to Lax
+    'AUTH_COOKIE_SAMESITE': None, # TODO: Modify to Lax
 }
 
 # CORS 관련 추가
-CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000','http://localhost:3000']
+CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000','http://localhost:3000', ]
 CORS_ALLOW_CREDENTIALS = True #쿠키가 cross-site HTTP 요청에 포함될 수 있다
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 #커스텀유저
 AUTH_USER_MODEL = "users.User"
@@ -248,24 +258,36 @@ LOGGING = {
             'format': '{asctime} {levelname} {message}',
             'style': '{'
         },
+         'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[{server_time}] {message}',
+            'style': '{',
+        },
     },
     'handlers': {
-        # 'console': {
-        #     'class'     : 'logging.StreamHandler',
-        #     'formatter' : 'verbose',
-        #     'level'     : 'DEBUG',
-        # },
+        
         'file': {
             'level'     : 'DEBUG',
             'class'     : 'logging.FileHandler',
             'formatter' : 'verbose',
             'filename'  : 'debug.log',
+            'maxBytes': 1024*1024*5,  # 5 MB
+        },
+        'django.server': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.server',
         },
     },
     'loggers': {
         'django.db.backends': {
             'handlers' : ['file'],
             'level'    : 'DEBUG',
+            'propagate': False,
+        },
+         'django.server': {
+            'handlers': ['django.server'],
+            'level': 'INFO',
             'propagate': False,
         },
     },
