@@ -21,5 +21,6 @@ urlpatterns = [
     path("api/auth/", include("users.urls")),
     path("api/msg/", include("msgs.urls")),
     path("api/flavor/", include("flavors.urls")),
+    path("api/bookmark/", include("bookmarks.urls")),
     
 ]

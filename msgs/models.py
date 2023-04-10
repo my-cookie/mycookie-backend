@@ -3,8 +3,8 @@ from django.db import models
 
 class Message(models.Model):   
     
-    receiver = models.ForeignKey('users.User', related_name='receiver', on_delete=models.SET_DEFAULT, default='사라진쿠키')
-    sender = models.ForeignKey('users.User', related_name='sender', on_delete=models.SET_DEFAULT, default='사라진쿠키')
+    receiver = models.ForeignKey('users.User', related_name='receiver', on_delete=models.SET_DEFAULT, default=11)
+    sender = models.ForeignKey('users.User', related_name='sender', on_delete=models.SET_DEFAULT, default=11)
     flavor = models.ForeignKey('flavors.Flavor', on_delete=models.PROTECT)
     is_anonymous = models.BooleanField(blank=False, null=False)
     content = models.CharField(max_length=255, blank=False, null=False)
