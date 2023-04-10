@@ -190,7 +190,7 @@ class UserInfoRegisterView(APIView) :
             return login(user)   
 
 class NicknameSearchView(APIView) :
-    def get(self, request):
+    def post(self, request):
         
         if not 'nickname' in request.data:
             return Response(data={'error' : 'nickname is required'}, status=status.HTTP_400_BAD_REQUEST) 
