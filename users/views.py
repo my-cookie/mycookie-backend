@@ -198,8 +198,9 @@ class NicknameSearchView(APIView) :
         users = User.objects.filter(nickname__contains = request.data['nickname'], is_active=True) 
         serializer = serializers.UserNickSearchSerializer(users, many=True)
         
-        if len(serializer.data) == 0:
+        if len(serializer.data) == 0 or request.data["nickname"] == "":
             return Response(data='일치하는 유저가 없어요', status=status.HTTP_206_PARTIAL_CONTENT)
+        
         return Response(data=serializer.data, status=status.HTTP_200_OK) 
         
            
