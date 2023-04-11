@@ -17,8 +17,15 @@ class SendMsgView(APIView) :
         if not 'flavor' in copy_data or not 'receiver' in copy_data:
             return Response(data={'error':'receiver and flavor are required'}, status=status.HTTP_400_BAD_REQUEST)
         
-        now = datetime.now().strftime('%Y-%m-%d')
+        try:
+            receiver = User.objects.get(id=copy_data['receiver'])
+           
+            if receiver.is_active == False:
+                return Response(data={'error':'this receiver is inactive'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        except User.DoesNotExist:
+            return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
         
+        now = datetime.now().strftime('%Y-%m-%d')
         
         try:
             # today_msg = Message.objects.filter(created_at__contains = now)    #캐싱필요
@@ -29,14 +36,9 @@ class SendMsgView(APIView) :
         except:
             count = 0 
 
-        try:
-            receiver = User.objects.get(id=copy_data['receiver'])
-           
-            if receiver.is_active == False:
-                return Response(data={'error':'this receiver is inactive'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        
                 
-        except User.DoesNotExist:
-            return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
         copy_data['sender'] = user_id
         receiver_flavors = [myflavor.flavor_id for myflavor in receiver.myflavor.all()]  
         
@@ -57,7 +59,7 @@ class SendMsgView(APIView) :
 
             
             
-class ReadMessage(APIView) :
+class ReadMessageView(APIView) :
 
     def post(self, request):
         try:
@@ -71,6 +73,26 @@ class ReadMessage(APIView) :
             sender = msg.sender
             sender_uuid = sender.uuid
             return Response(data={'success':'is_read was replaced with True', 'sender_uuid': sender_uuid}, status=status.HTTP_200_OK)
+        
         except Message.DoesNotExist:
             return Response(data={'error':'this message does not exist'}, status=status.HTTP_404_NOT_FOUND)
-            
+
+
+class RemainMsgView(APIView) :
+
+    def post(self, request): 
+        if not 'receiver' in request.data:
+            return Response(data={'error':'receiver is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            receiver = User.objects.get(id=request.data['receiver'])
+           
+            if receiver.is_active == False:
+                return Response(data={'error':'this receiver is inactive'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        except User.DoesNotExist:
+            return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        user_id = 7
+        now = datetime.now().strftime('%Y-%m-%d')
+        today_msgs = cache.get_or_set('today_msgs', Message.objects.filter(created_at__contains = now))
+        count = today_msgs.filter(sender=user_id, receiver=request.data['receiver']).count()
+        return Response(data={'count':3-count}, status=status.HTTP_200_OK)
+          
