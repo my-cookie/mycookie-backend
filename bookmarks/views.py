@@ -14,8 +14,7 @@ class BookmarkView(APIView) :
         user_id = 7
         bookmarks = Bookmark.objects.filter(owner = user_id)
         serializer = serializers.BookmarksSerializer(bookmarks, many=True)
-        if len(serializer.data) == 0:
-            return Response(data='등록된 정보가 없어요', status=status.HTTP_206_PARTIAL_CONTENT)
+
         return Response(data=serializer.data, status=status.HTTP_200_OK) 
     
     def post(self, request):
@@ -27,13 +26,15 @@ class BookmarkView(APIView) :
         serializer = serializers.BookmarkSerializer(data = copy_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        new = Bookmark.objects.get(id=serializer.data['id'])
+        serializer = serializers.BookmarksSerializer(new)
         return Response(data=serializer.data, status=status.HTTP_201_CREATED) 
     
     def delete(self, request):
         try:
-            if not 'bookmark_id' in request.data:
-                return Response(data={'error':'bookmark_id is required'}, status=status.HTTP_400_BAD_REQUEST) 
-            bookmark = Bookmark.objects.get(id=request.data['bookmark_id'])
+            if not 'target' in request.data:
+                return Response(data={'error':'target is required'}, status=status.HTTP_400_BAD_REQUEST) 
+            bookmark = Bookmark.objects.get(target=request.data['target'])
             bookmark.delete()
             return Response(data='deleted', status=status.HTTP_200_OK) 
             

@@ -182,7 +182,7 @@ class UserInfoRegisterView(APIView) :
             user.save()
             return login(user)  
          
-@decorators.permission_classes([permissions.IsAuthenticated])
+# @decorators.permission_classes([permissions.IsAuthenticated])
 class NicknameSearchView(APIView) :
     def post(self, request):
         
