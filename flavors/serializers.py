@@ -7,3 +7,9 @@ class FlavorSerializer(serializers.ModelSerializer):
         model = Flavor
         fields = '__all__'  
         
+class FlavorImgSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Flavor
+        fields = ('img',)
+        

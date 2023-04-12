@@ -22,6 +22,8 @@ class BookmarkView(APIView) :
         user_id = 7 
         copy_data = request.data.copy()
         copy_data['owner'] = user_id
+        if Bookmark.objects.filter(owner=user_id, target=request.data['target']).exists():
+            return Response(data='already exists', status=status.HTTP_206_PARTIAL_CONTENT)
         serializer = serializers.BookmarkSerializer(data = copy_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()

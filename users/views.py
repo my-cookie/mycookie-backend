@@ -28,15 +28,7 @@ def login(user):
     tokens = get_tokens_for_user(user)
     res = Response()
     serializer = serializers.UserInfoSerializer(user)
-    res.set_cookie(
-        key=settings.SIMPLE_JWT['AUTH_COOKIE'],
-        value=tokens["access"],
-        expires=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
-        domain=settings.SIMPLE_JWT['AUTH_COOKIE_DOMAIN'],
-        secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-        httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-        samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
-        )
+   
     res.set_cookie(
         key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
         value=tokens["refresh"],
@@ -92,6 +84,7 @@ class KakaoLoginView(APIView) :
     def post(self, request):
                     
         kakao_id, kakao_age, kakao_gender = kakao_access(request)  
+        # kakao_id, kakao_age, kakao_gender = 3736378603, None, None
                                             
         try:
             User.objects.get(username='1'+str(kakao_id))
@@ -187,8 +180,9 @@ class UserInfoRegisterView(APIView) :
             user.is_active = True            
             user.last_login = timezone.now()
             user.save()
-            return login(user)   
-
+            return login(user)  
+         
+@decorators.permission_classes([permissions.IsAuthenticated])
 class NicknameSearchView(APIView) :
     def post(self, request):
         
@@ -198,14 +192,57 @@ class NicknameSearchView(APIView) :
         users = User.objects.filter(nickname__contains = request.data['nickname'], is_active=True).exclude(is_staff = True) 
         serializer = serializers.UserNickSearchSerializer(users, many=True)
         
-        if len(serializer.data) == 0 or request.data["nickname"] == "":
-            return Response(data='일치하는 유저가 없어요', status=status.HTTP_206_PARTIAL_CONTENT)
+        if request.data["nickname"] == "":
+            return Response(data=[], status=status.HTTP_200_OK)
         
         return Response(data=serializer.data, status=status.HTTP_200_OK) 
         
            
-             
-             
+class CookieTokenRefreshSerializer(jwt_serializers.TokenRefreshSerializer):
+    
+    refresh = None
+
+    def validate(self, attrs):
+        attrs['refresh'] = self.context['request'].COOKIES.get('refresh')
+        if attrs['refresh']:
+            return super().validate(attrs)
+        else:
+            raise jwt_exceptions.InvalidToken(
+                'No valid token found in cookie \'refresh\'')
+
+
+class CookieTokenRefreshView(jwt_views.TokenRefreshView):
+    serializer_class = CookieTokenRefreshSerializer
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        
+        return super().finalize_response(request, response, *args, **kwargs)
+    
+    
+                   
+@decorators.permission_classes([permissions.IsAuthenticated])
+class LogoutView(APIView):
+    def post(self, request):
+        try:
+            
+            refreshToken = request.COOKIES.get('refresh')
+            
+            token = RefreshToken(refreshToken)
+            token.blacklist()
+            res = Response()
+            res.delete_cookie(
+                key = settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                domain=settings.SIMPLE_JWT['AUTH_COOKIE_DOMAIN']
+                )
+            res.delete_cookie("X-CSRFToken")
+            res.delete_cookie("csrftoken")
+            # res["X-CSRFToken"]=None
+            res.data = {"Success" : "Logout successfully"}
+                        
+            return res
+        except:
+            raise exceptions.ParseError("Invalid token")
+                 
 
             
  

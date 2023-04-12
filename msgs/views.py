@@ -7,12 +7,14 @@ from rest_framework import exceptions, decorators, permissions, status
 from datetime import datetime
 from django.db import transaction
 from django.core.cache import cache
+
 #db저장과 동시에 성공여부를 반환한다. 성공일 시 프론트에서 websocket요청
 
+@decorators.permission_classes([permissions.IsAuthenticated])
 class SendMsgView(APIView) :
     @transaction.atomic
     def post(self, request):
-        user_id = 7
+        user_id = request.user.id
         copy_data = request.data.copy()
         if not 'flavor' in copy_data or not 'receiver' in copy_data:
             return Response(data={'error':'receiver and flavor are required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -34,11 +36,8 @@ class SendMsgView(APIView) :
             if count == 3:
                 return Response(data={'error':'no more message'}, status=status.HTTP_429_TOO_MANY_REQUESTS) 
         except:
-            count = 0 
-
-        
+            count = 0        
                 
-        
         copy_data['sender'] = user_id
         receiver_flavors = [myflavor.flavor_id for myflavor in receiver.myflavor.all()]  
         
@@ -58,7 +57,7 @@ class SendMsgView(APIView) :
             return Response(data={"receiver_nickname":receiver.nickname,"receiver":serializer.data['receiver'], "content": serializer.data['content'], "is_anonymous": serializer.data['is_anonymous'],"is_success" : False, 'remain': 2-count}, status=status.HTTP_201_CREATED)
 
             
-            
+@decorators.permission_classes([permissions.IsAuthenticated])            
 class ReadMessageView(APIView) :
 
     def post(self, request):
@@ -78,6 +77,7 @@ class ReadMessageView(APIView) :
             return Response(data={'error':'this message does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 
+@decorators.permission_classes([permissions.IsAuthenticated])
 class RemainMsgView(APIView) :
 
     def post(self, request): 
@@ -90,9 +90,28 @@ class RemainMsgView(APIView) :
                 return Response(data={'error':'this receiver is inactive'}, status=status.HTTP_406_NOT_ACCEPTABLE)
         except User.DoesNotExist:
             return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        user_id = 7
+        user_id = request.user.id
         now = datetime.now().strftime('%Y-%m-%d')
         today_msgs = cache.get_or_set('today_msgs', Message.objects.filter(created_at__contains = now))
         count = today_msgs.filter(sender=user_id, receiver=request.data['receiver']).count()
         return Response(data={'count':3-count}, status=status.HTTP_200_OK)
-          
+
+
+@decorators.permission_classes([permissions.IsAuthenticated])
+class SenderMsgView(APIView) :
+    
+    def get(self, request):
+        user_id = request.user.id
+        msgs = Message.objects.filter(sender = user_id, is_success = True, sender_deleted = False)
+        serializer = serializers.SenderMsgSerializer(msgs, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+    
+@decorators.permission_classes([permissions.IsAuthenticated])
+class ReceiverMsgView(APIView) :
+    
+    def get(self, request):
+        user_id = request.user.id
+        msgs = Message.objects.filter(receiver = user_id, is_success = True, receiver_deleted = False)
+        serializer = serializers.ReceiverMsgSerializer(msgs, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        
