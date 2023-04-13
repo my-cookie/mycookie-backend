@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "corsheaders",
     #기타
     'django_crontab',
+    'django_extensions',
     #채팅
     "channels",
     #앱

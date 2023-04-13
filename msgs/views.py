@@ -92,11 +92,12 @@ class RemainMsgView(APIView) :
         except User.DoesNotExist:
             return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
         user_id = 7
+        user_nickname = User.objects.get(id = 7).nickname
         # user_id = request.user.id
         now = datetime.now().strftime('%Y-%m-%d')
         today_msgs = cache.get_or_set('today_msgs', Message.objects.filter(created_at__contains = now))
         count = today_msgs.filter(sender=user_id, receiver=request.data['receiver']).count()
-        return Response(data={'count':3-count}, status=status.HTTP_200_OK)
+        return Response(data={'sender_nickname':user_nickname,'count':3-count}, status=status.HTTP_200_OK)
 
 
 # @decorators.permission_classes([permissions.IsAuthenticated])
