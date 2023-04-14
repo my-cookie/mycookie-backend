@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import Bookmark
 
-# Register your models here.
+@admin.register(Bookmark)
+class FlavorAdmin(admin.ModelAdmin):  
+    list_display = ('id', 'owner', 'target',)
+    list_filter = ('owner', 'target',)
+

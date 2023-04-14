@@ -26,8 +26,8 @@ class CustomUserAdmin(UserAdmin):
 		},
 	),
 )
-    list_display = ("id","nickname","username", "is_superuser","age",'gender','uuid')
-    list_filter = ("is_superuser",'age','gender')
+    list_display = ("id","nickname","username", "is_superuser", "is_staff", "age",'gender','uuid')
+    list_filter = ("is_superuser","is_staff",'age','gender')
     search_fields = ("username","nickname","uuid",)
     ordering = ("id",)
     # filter_horizontal = (
