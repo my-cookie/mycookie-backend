@@ -9,4 +9,7 @@ urlpatterns = [
     path('nickname', views.NicknameConfirm.as_view()),
     path('search', views.NicknameSearchView.as_view()),
     path('access', views.CookieTokenRefreshView.as_view()),
+    path('nickname/edit', views.EditNicknameView.as_view()),
+    path('myflavor/edit', views.EditMyflavorView.as_view()),
+    path('myflavor', views.MyflavorView.as_view()),
 ]

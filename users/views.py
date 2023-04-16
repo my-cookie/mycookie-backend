@@ -10,9 +10,10 @@ from config import settings
 from django.utils import timezone
 from django.http import Http404
 from django.contrib.auth import authenticate
-from datetime import datetime
+from datetime import datetime, timedelta
 from myflavors.serializers import MyflavorSerializer
 from django.db import transaction
+from myflavors.models import Myflavor
 
 def get_tokens_for_user(user):
     
@@ -182,7 +183,7 @@ class UserInfoRegisterView(APIView) :
             user.save()
             return login(user)  
          
-# @decorators.permission_classes([permissions.IsAuthenticated])
+@decorators.permission_classes([permissions.IsAuthenticated])
 class NicknameSearchView(APIView) :
     def post(self, request):
         
@@ -242,8 +243,71 @@ class LogoutView(APIView):
             return res
         except:
             raise exceptions.ParseError("Invalid token")
+  
                  
+class EditNicknameView(APIView):
+    def patch(self, request):
+        
+        try: 
+            if not "nickname" in request.data:
+                return Response(data={'error':'nickname is required'}, status=status.HTTP_400_BAD_REQUEST)
+            user_id = 7
+            user = User.objects.get(id = user_id)
+            if user.is_changable == False:
+                return Response(data={'error':'nickname was already changed'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            if user.nickname == request.data["nickname"]:
+                return Response(data={'message':'변경사항이 없습니다'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                
+            copy_data = request.data.copy()
+            copy_data["is_changable"] = False
+            serializer = serializers.UserEditNicknameSerializer(user, copy_data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK) 
+            
+        except User.DoesNotExist:
+            return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
+class MyflavorView(APIView):   
+    def get(self, request):
+        user_id = 7         
+        serializer = MyflavorSerializer(Myflavor.objects.filter(user = user_id), many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)   
+    
+class EditMyflavorView(APIView):   
+    def get(self, request):
+        user_id = 10
+        last_edit = Myflavor.objects.filter(user = user_id).last().created_at
+        after_one_week = last_edit + timedelta(weeks=1)
+        now = timezone.now()
+        if now.strftime('%Y-%m-%d') < after_one_week.strftime('%Y-%m-%d'):
+            return Response(data={'message': f"{after_one_week.strftime('%Y-%m-%d')}"}, status=status.HTTP_406_NOT_ACCEPTABLE)  
+        return Response(status=status.HTTP_200_OK)       
+    
+    def post(self, request):
+        if not 'flavor' in request.data:
+            return Response(data={'error':'flavor is required'}, status=status.HTTP_400_BAD_REQUEST)
+        user_id = 8 
+        flavors = request.data['flavor'].split(',')        
+      
+        copy_data = request.data.copy()
+        copy_data['user'] = user_id   
+        with transaction.atomic():
+            for flavor in Myflavor.objects.filter(user = user_id):
+                flavor.delete()
+            for flavor in flavors:
+                copy_data['flavor'] = flavor
+                myflavor_serializer = MyflavorSerializer(data=copy_data)
+                myflavor_serializer.is_valid(raise_exception=True)
+                myflavor_serializer.save()
+            serializer = MyflavorSerializer(Myflavor.objects.filter(user = user_id), many=True)
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        
+            
+             
+            
+            
+            
             
  
 

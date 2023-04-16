@@ -12,10 +12,15 @@ class Message(models.Model):
     is_read = models.BooleanField(default=False, blank=True, null=False)
     sender_deleted = models.BooleanField(default=False, blank=True, null=False)
     receiver_deleted = models.BooleanField(default=False, blank=True, null=False)
+    sender_canceled = models.BooleanField(default=False, blank=True, null=False)
     is_spam = models.BooleanField(default=False, blank=True, null=False)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
-        return self.receiver
+        return f'{self.sender}-{self.receiver}'
+    
+class Spam(models.Model):
+    message = models.ForeignKey('msgs.Message', on_delete=models.CASCADE)
+    is_checked = models.BooleanField(default=False, null=False, blank=False) 
 

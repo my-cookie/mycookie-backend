@@ -43,3 +43,9 @@ class NicknameConfirmSerializer(serializers.ModelSerializer):
         model = TemporalNickname
         fields = '__all__'
         
+class UserEditNicknameSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ('nickname', 'is_changable')
+        

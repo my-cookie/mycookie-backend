@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'myflavors.apps.MyflavorsConfig',
     'msgs.apps.MsgsConfig',
     'bookmarks.apps.BookmarksConfig',
+    'feedbacks.apps.FeedbacksConfig',
 ]
 
 CRONJOBS = [

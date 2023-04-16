@@ -15,7 +15,7 @@ class SendMsgView(APIView) :
     @transaction.atomic
     def post(self, request):
         # user_id = request.user.id
-        user_id = 7
+        user_id = 9
         copy_data = request.data.copy()
         if not 'flavor' in copy_data or not 'receiver' in copy_data:
             return Response(data={'error':'receiver and flavor are required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -106,7 +106,7 @@ class SenderMsgView(APIView) :
     def get(self, request):
         user_id = 7
         # user_id = request.user.id
-        msgs = Message.objects.filter(sender = user_id, is_success = True, sender_deleted = False)
+        msgs = Message.objects.filter(sender = user_id, is_success = True, sender_deleted = False, sender_canceled = False)
         serializer = serializers.SenderMsgSerializer(msgs, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
     
@@ -116,7 +116,73 @@ class ReceiverMsgView(APIView) :
     def get(self, request):
         user_id = 7
         # user_id = request.user.id
-        msgs = Message.objects.filter(receiver = user_id, is_success = True, receiver_deleted = False)
+        msgs = Message.objects.filter(receiver = user_id, is_success = True, receiver_deleted = False, sender_canceled = False)
         serializer = serializers.ReceiverMsgSerializer(msgs, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
         
+        
+class SpamReportView(APIView) :
+    
+    def post(self, request):
+        try:
+            user_id = 7
+            if not "message" in request.data:
+                return Response(data={'error':'message is required'}, status=status.HTTP_400_BAD_REQUEST)
+            msgs = Message.objects.get(id = request.data["message"])
+            if msgs.is_spam == True:
+                return Response(data={'message':'this message is aleady reported as spam'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                
+            
+            with transaction.atomic():
+                
+                copy_data = request.data.copy()
+                copy_data['is_spam'] = True
+                serializer = serializers.SpamMessageSerializer(msgs, copy_data, partial = True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                
+                serializer = serializers.SpamSerializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()                
+            
+                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        except Message.DoesNotExist:
+            return Response(data={'error':'this message does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+class ReceiverDeleteMsgView(APIView) :
+    
+    def patch(self, request):
+        user_id = 7
+        if not "message_id" in request.data:
+            return Response(data={'error':'message_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        msg = Message.objects.get(id = request.data['message_id'])
+        msg.receiver_deleted = True
+        msg.save()
+        return Response(status=status.HTTP_200_OK)
+    
+class SenderDeleteMsgView(APIView) :
+    
+    def patch(self, request):
+        user_id = 7
+        if not "message_id" in request.data:
+            return Response(data={'error':'message_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        msg = Message.objects.get(id = request.data['message_id'])
+        msg.sender_deleted = True
+        msg.save()
+        return Response(status=status.HTTP_200_OK)
+    
+class SenderCancelMsgView(APIView) :
+    
+    def patch(self, request):
+        user_id = 7
+        if not "message_id" in request.data:
+            return Response(data={'error':'message_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        msg = Message.objects.get(id = request.data['message_id'])
+        if msg.is_read == True :
+            return Response(data={'error':'message is already read'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        msg.sender_canceled = True
+        msg.save()
+        return Response(status=status.HTTP_200_OK)
