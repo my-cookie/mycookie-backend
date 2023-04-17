@@ -8,17 +8,17 @@ from datetime import datetime
 from django.db import transaction
 from django.core.cache import cache
 
-
+@decorators.permission_classes([permissions.IsAuthenticated])
 class BookmarkView(APIView) :
     def get(self, request):
-        user_id = 7
+        user_id = request.user.id
         bookmarks = Bookmark.objects.filter(owner = user_id)
         serializer = serializers.BookmarksSerializer(bookmarks, many=True)
 
         return Response(data=serializer.data, status=status.HTTP_200_OK) 
     
     def post(self, request):
-        user_id = 7 
+        user_id = request.user.id 
         copy_data = request.data.copy()
         copy_data['owner'] = user_id
         if Bookmark.objects.filter(owner=user_id, target=request.data['target']).exists():

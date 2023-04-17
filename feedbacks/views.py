@@ -7,11 +7,11 @@ from datetime import datetime
 from django.db import transaction
 from django.core.cache import cache
 
-
+@decorators.permission_classes([permissions.IsAuthenticated])
 class FeedbackView(APIView) :
 
     def post(self, request):
-        user_id = 7
+        user_id = request.user.id
         copy_data = request.data.copy()
         copy_data['user'] = user_id
         serializer = serializers.FeedbackSerializer(data = copy_data)

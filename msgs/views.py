@@ -10,12 +10,12 @@ from django.core.cache import cache
 
 #db저장과 동시에 성공여부를 반환한다. 성공일 시 프론트에서 websocket요청
 
-# @decorators.permission_classes([permissions.IsAuthenticated])
+@decorators.permission_classes([permissions.IsAuthenticated])
 class SendMsgView(APIView) :
     @transaction.atomic
     def post(self, request):
-        # user_id = request.user.id
-        user_id = 9
+        user_id = request.user.id
+        # user_id = 9
         copy_data = request.data.copy()
         if not 'flavor' in copy_data or not 'receiver' in copy_data:
             return Response(data={'error':'receiver and flavor are required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -58,7 +58,7 @@ class SendMsgView(APIView) :
             return Response(data={"receiver_nickname":receiver.nickname,"receiver":serializer.data['receiver'], "content": serializer.data['content'], "is_anonymous": serializer.data['is_anonymous'],"is_success" : False, 'remain': 2-count}, status=status.HTTP_201_CREATED)
 
             
-# @decorators.permission_classes([permissions.IsAuthenticated])            
+@decorators.permission_classes([permissions.IsAuthenticated])            
 class ReadMessageView(APIView) :
 
     def post(self, request):
@@ -78,7 +78,7 @@ class ReadMessageView(APIView) :
             return Response(data={'error':'this message does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 
-# @decorators.permission_classes([permissions.IsAuthenticated])
+@decorators.permission_classes([permissions.IsAuthenticated])
 class RemainMsgView(APIView) :
 
     def post(self, request): 
@@ -91,7 +91,7 @@ class RemainMsgView(APIView) :
                 return Response(data={'error':'this receiver is inactive'}, status=status.HTTP_406_NOT_ACCEPTABLE)
         except User.DoesNotExist:
             return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        user_id = 7
+        user_id = request.user.id
         user_nickname = User.objects.get(id = 7).nickname
         # user_id = request.user.id
         now = datetime.now().strftime('%Y-%m-%d')
@@ -100,32 +100,32 @@ class RemainMsgView(APIView) :
         return Response(data={'sender_nickname':user_nickname,'count':3-count}, status=status.HTTP_200_OK)
 
 
-# @decorators.permission_classes([permissions.IsAuthenticated])
+@decorators.permission_classes([permissions.IsAuthenticated])
 class SenderMsgView(APIView) :
     
     def get(self, request):
-        user_id = 7
-        # user_id = request.user.id
+        # user_id = 7
+        user_id = request.user.id
         msgs = Message.objects.filter(sender = user_id, is_success = True, sender_deleted = False, sender_canceled = False)
         serializer = serializers.SenderMsgSerializer(msgs, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
     
-# @decorators.permission_classes([permissions.IsAuthenticated])
+@decorators.permission_classes([permissions.IsAuthenticated])
 class ReceiverMsgView(APIView) :
     
     def get(self, request):
-        user_id = 7
-        # user_id = request.user.id
+        # user_id = 7
+        user_id = request.user.id
         msgs = Message.objects.filter(receiver = user_id, is_success = True, receiver_deleted = False, sender_canceled = False)
         serializer = serializers.ReceiverMsgSerializer(msgs, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
         
-        
+@decorators.permission_classes([permissions.IsAuthenticated])    
 class SpamReportView(APIView) :
     
     def post(self, request):
         try:
-            user_id = 7
+            user_id = request.user.id
             if not "message" in request.data:
                 return Response(data={'error':'message is required'}, status=status.HTTP_400_BAD_REQUEST)
             msgs = Message.objects.get(id = request.data["message"])
@@ -149,10 +149,12 @@ class SpamReportView(APIView) :
         except Message.DoesNotExist:
             return Response(data={'error':'this message does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
+
+@decorators.permission_classes([permissions.IsAuthenticated])
 class ReceiverDeleteMsgView(APIView) :
     
     def patch(self, request):
-        user_id = 7
+        user_id = request.user.id
         if not "message_id" in request.data:
             return Response(data={'error':'message_id is required'}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -160,11 +162,13 @@ class ReceiverDeleteMsgView(APIView) :
         msg.receiver_deleted = True
         msg.save()
         return Response(status=status.HTTP_200_OK)
-    
+
+
+@decorators.permission_classes([permissions.IsAuthenticated])
 class SenderDeleteMsgView(APIView) :
     
     def patch(self, request):
-        user_id = 7
+        user_id = request.user.id
         if not "message_id" in request.data:
             return Response(data={'error':'message_id is required'}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -172,17 +176,23 @@ class SenderDeleteMsgView(APIView) :
         msg.sender_deleted = True
         msg.save()
         return Response(status=status.HTTP_200_OK)
-    
+
+
+@decorators.permission_classes([permissions.IsAuthenticated])
 class SenderCancelMsgView(APIView) :
     
     def patch(self, request):
-        user_id = 7
-        if not "message_id" in request.data:
-            return Response(data={'error':'message_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-            
-        msg = Message.objects.get(id = request.data['message_id'])
-        if msg.is_read == True :
-            return Response(data={'error':'message is already read'}, status=status.HTTP_406_NOT_ACCEPTABLE)
-        msg.sender_canceled = True
-        msg.save()
-        return Response(status=status.HTTP_200_OK)
+        user_id = request.user.id
+        try:
+            if not "message_id" in request.data:
+                return Response(data={'error':'message_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            msg = Message.objects.get(id = request.data['message_id'])
+            if msg.is_read == True :
+                return Response(data={'error':'message is already read'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            msg.sender_canceled = True
+            msg.save()
+            return Response(status=status.HTTP_200_OK)
+        except Message.DoesNotExist:
+            return Response(data={'error':'this message is does not exist'}, status=status.HTTP_404_NOT_FOUND)
+         

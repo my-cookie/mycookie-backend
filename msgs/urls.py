@@ -10,5 +10,6 @@ urlpatterns = [
     path('spam',views.SpamReportView.as_view()),
     path('sender/delete',views.SenderDeleteMsgView.as_view()),
     path('receiver/delete',views.ReceiverDeleteMsgView.as_view()),
+    path('sender/cancel',views.SenderCancelMsgView.as_view()),
      
 ]

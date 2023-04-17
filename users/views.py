@@ -156,7 +156,7 @@ class UserInfoRegisterView(APIView) :
         except:
             return Response(data={'error':"This user does not exist"}, status=status.HTTP_404_NOT_FOUND)
             
-        user_id = user.id
+        user_id = request.user.id
         nickname_serializer = serializers.UserNicknameSerializer(user, data=request.data, partial = True)
         nickname_serializer.is_valid(raise_exception=True)
         
@@ -244,14 +244,14 @@ class LogoutView(APIView):
         except:
             raise exceptions.ParseError("Invalid token")
   
-                 
+@decorators.permission_classes([permissions.IsAuthenticated])                
 class EditNicknameView(APIView):
     def patch(self, request):
         
         try: 
             if not "nickname" in request.data:
                 return Response(data={'error':'nickname is required'}, status=status.HTTP_400_BAD_REQUEST)
-            user_id = 7
+            user_id = request.user.id
             user = User.objects.get(id = user_id)
             if user.is_changable == False:
                 return Response(data={'error':'nickname was already changed'}, status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -268,15 +268,17 @@ class EditNicknameView(APIView):
         except User.DoesNotExist:
             return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
+@decorators.permission_classes([permissions.IsAuthenticated])                
 class MyflavorView(APIView):   
     def get(self, request):
-        user_id = 7         
+        user_id = request.user.id        
         serializer = MyflavorSerializer(Myflavor.objects.filter(user = user_id), many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)   
-    
+
+@decorators.permission_classes([permissions.IsAuthenticated])                
 class EditMyflavorView(APIView):   
     def get(self, request):
-        user_id = 10
+        user_id = request.user.id
         last_edit = Myflavor.objects.filter(user = user_id).last().created_at
         after_one_week = last_edit + timedelta(weeks=1)
         now = timezone.now()
@@ -287,7 +289,7 @@ class EditMyflavorView(APIView):
     def post(self, request):
         if not 'flavor' in request.data:
             return Response(data={'error':'flavor is required'}, status=status.HTTP_400_BAD_REQUEST)
-        user_id = 8 
+        user_id = request.user.id 
         flavors = request.data['flavor'].split(',')        
       
         copy_data = request.data.copy()
