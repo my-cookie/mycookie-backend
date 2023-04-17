@@ -246,6 +246,16 @@ class LogoutView(APIView):
   
 @decorators.permission_classes([permissions.IsAuthenticated])                
 class EditNicknameView(APIView):
+    def get(self, request):
+        try:
+            user_id = request.user.id
+            user = User.objects.get(id = user_id)
+            serializer = serializers.UserNicknameSerializer(user)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+        
     def patch(self, request):
         
         try: 
