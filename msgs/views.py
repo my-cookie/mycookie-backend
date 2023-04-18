@@ -54,7 +54,7 @@ class SendMsgView(APIView) :
             
             msgs = cache.get(f'sender_msg_{user_id}')
             if msgs is None:
-                msgs = Message.objects.filter(sender = user_id, is_success = True, sender_deleted = False, sender_canceled = False).order_by('-created_at')
+                msgs = Message.objects.filter(sender = user_id, is_success = True, sender_deleted = False, sender_canceled = False)
                 msgs_serializer = serializers.SenderMsgSerializer(msgs, many=True)
                 msgs = msgs_serializer.data
                 
@@ -67,7 +67,7 @@ class SendMsgView(APIView) :
              
             msgs = cache.get(f'receiver_msg_{receiver_id}')
             if msgs is None:
-                msgs = Message.objects.filter(receiver = receiver_id, is_success = True, receiver_deleted = False, sender_canceled = False).order_by('-created_at')
+                msgs = Message.objects.filter(receiver = receiver_id, is_success = True, receiver_deleted = False, sender_canceled = False)
                 msgs_serializer = serializers.ReceiverMsgSerializer(msgs, many=True)
                 msgs = msgs_serializer.data
                 
@@ -173,11 +173,11 @@ class RemainMsgView(APIView) :
 class SenderMsgView(APIView) :
     
     def get(self, request):
-        # user_id = 7
+        # user_id = 10
         user_id = request.user.id
         msgs = cache.get(f'sender_msg_{user_id}')
         if msgs is None:
-            msgs = Message.objects.filter(sender = user_id, is_success = True, sender_deleted = False, sender_canceled = False).order_by('-created_at')
+            msgs = Message.objects.filter(sender = user_id, is_success = True, sender_deleted = False, sender_canceled = False)
             serializer = serializers.SenderMsgSerializer(msgs, many=True)
             msgs = serializer.data
             cache.set(f'sender_msg_{user_id}', msgs, 60*60*24)
@@ -192,7 +192,7 @@ class ReceiverMsgView(APIView) :
         user_id = request.user.id
         msgs = cache.get(f'receiver_msg_{user_id}')
         if msgs is None:
-            msgs = Message.objects.filter(receiver = user_id, is_success = True, receiver_deleted = False, sender_canceled = False).order_by('-created_at')
+            msgs = Message.objects.filter(receiver = user_id, is_success = True, receiver_deleted = False, sender_canceled = False)
             msgs_serializer = serializers.ReceiverMsgSerializer(msgs, many=True)
             msgs = msgs_serializer.data
             cache.set(f'receiver_msg_{user_id}', msgs, 60*60*24)

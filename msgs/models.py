@@ -20,6 +20,9 @@ class Message(models.Model):
     def __str__(self):
         return f'{self.sender}-{self.receiver}'
     
+    class Meta:
+        ordering = ['-id']
+    
 class Spam(models.Model):
     message = models.ForeignKey('msgs.Message', on_delete=models.CASCADE)
     is_checked = models.BooleanField(default=False, null=False, blank=False) 

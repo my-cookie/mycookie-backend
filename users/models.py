@@ -14,8 +14,14 @@ class User(AbstractUser):
     is_changable = models.BooleanField(default=True, blank=True, null=False)
     yellow_card = models.PositiveIntegerField(default=0, blank=True, null=False)
     uuid = models.UUIDField(default=uuid.uuid4)
+    
     def __str__(self):
         return self.nickname
+    
+    # class Meta:
+    #     indexes = [
+    #         models.Index(fields=["nickname", "uuid"]),
+    #     ]
     
 class TemporalNickname(models.Model):
     nicknameRegex = RegexValidator(regex = r'^([가-힣a-zA-Z0-9]{1,20})$', message='Enter a valid nickname',code=400)
