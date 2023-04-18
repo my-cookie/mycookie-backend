@@ -270,10 +270,14 @@ class DeleteAccountView(APIView):
                 user.delete()
                 
                 #캐시삭제
-                cache.delete(f'sender_msg_{user_id}')
-                cache.delete(f'receiver_msg_{user_id}')
-                cache.delete(f'flavors_{user_id}')
-                cache.delete(f'change_flavor_{user_id}')
+                try:
+                    cache.delete(f'sender_msg_{user_id}')
+                    cache.delete(f'receiver_msg_{user_id}')
+                    cache.delete(f'flavors_{user_id}')
+                    cache.delete(f'change_flavor_{user_id}')
+                    cache.delete(f'bookmarks_{user_id}')
+                except:
+                    pass
                 
                 refreshToken = request.COOKIES.get('refresh')
                 

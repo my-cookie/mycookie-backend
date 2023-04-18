@@ -19,7 +19,7 @@ class BookmarkView(APIView) :
             bookmarks = Bookmark.objects.filter(owner = user_id)
             bookmarks_serializer = serializers.BookmarksSerializer(bookmarks, many=True)
             bookmarks = bookmarks_serializer.data
-            cache.set(f'bookmarks_{user_id}', bookmarks, None)  
+            cache.set(f'bookmarks_{user_id}', bookmarks, 60*60*24)  
         
         return Response(data=bookmarks, status=status.HTTP_200_OK) 
     
@@ -34,7 +34,7 @@ class BookmarkView(APIView) :
             bookmarks = Bookmark.objects.filter(owner = user_id)
             bookmarks_serializer = serializers.BookmarksSerializer(bookmarks, many=True)
             bookmarks = bookmarks_serializer.data
-            cache.set(f'bookmarks_{user_id}', bookmarks, None)                
+            cache.set(f'bookmarks_{user_id}', bookmarks, 60*60*24)                
                         
         copy_data['owner'] = user_id
         
@@ -46,7 +46,7 @@ class BookmarkView(APIView) :
         serializer.save()
         
         bookmarks = bookmarks_serializer.data.append(serializer.data)
-        cache.set(f'bookmarks_{user_id}', bookmarks, None)    
+        cache.set(f'bookmarks_{user_id}', bookmarks, 60*60*24)    
         
         return Response(data=serializer.data, status=status.HTTP_201_CREATED) 
     
@@ -62,13 +62,13 @@ class BookmarkView(APIView) :
                 bookmarks = Bookmark.objects.filter(owner = user_id)
                 bookmarks_serializer = serializers.BookmarksSerializer(bookmarks, many=True)
                 bookmarks = bookmarks_serializer.data
-                cache.set(f'bookmarks_{user_id}', bookmarks, None) 
+                cache.set(f'bookmarks_{user_id}', bookmarks, 60*60*24) 
                    
             with transaction.atomic():
                 bookmark_deleted = Bookmark.objects.get(owner = user_id, target=request.data['target'])
                 bookmark_deleted.delete()
                 bookmarks = [bookmark for bookmark in bookmarks if request.data['target'] != bookmark["target"]["id"]]
-                cache.set(f'bookmarks_{user_id}', bookmarks, None) 
+                cache.set(f'bookmarks_{user_id}', bookmarks, 60*60*24) 
                 return Response(data='deleted', status=status.HTTP_200_OK) 
             
         except Bookmark.DoesNotExist:

@@ -158,6 +158,7 @@ class RemainMsgView(APIView) :
             return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
         
         user_id = request.user.id
+        user = User.objects.get(id = user_id)
         # user_id = 7
         now = datetime.now().strftime('%Y-%m-%d')
         count = cache.get(f'count_{user_id}_{request.data["receiver"]}_{now}')
@@ -166,7 +167,7 @@ class RemainMsgView(APIView) :
             count = today_msgs.filter(sender=user_id, receiver=request.data['receiver']).count()
             cache.set(f'count_{user_id}_{receiver.id}_{now}', count, 60*60*24)
             
-        return Response(data={'receiver_nickname':receiver.nickname,'count':3-count}, status=status.HTTP_200_OK)
+        return Response(data={'sender_nickname': user.nickname,'receiver_nickname':receiver.nickname,'count':3-count}, status=status.HTTP_200_OK)
 
 
 @decorators.permission_classes([permissions.IsAuthenticated])
