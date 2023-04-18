@@ -11,8 +11,12 @@ from django.core.cache import cache
 class FlavorsView(APIView) :
 
     def get(self, request):
-        flavors = Flavor.objects.all()
-        serializer = serializers.FlavorSerializer(flavors, many=True)
+        
+        total_flavors = cache.get('total_flavors')
+        if total_flavors is None:
+            flavors = Flavor.objects.all()
+            serializer = serializers.FlavorSerializer(flavors, many=True)
+            cache.set('total_flavors', serializer.data, None)        
         
         return Response(data=serializer.data, status=status.HTTP_200_OK)
         

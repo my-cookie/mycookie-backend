@@ -24,3 +24,7 @@ class TemporalNickname(models.Model):
     nickname = models.CharField(validators = [nicknameRegex], max_length=20, unique=True, blank=False, null=False)  #프론트에서 length 검사 필요
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
+class BannedUser(models.Model):
+    username = models.CharField(max_length=20, unique=True, blank=False, null=False)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    

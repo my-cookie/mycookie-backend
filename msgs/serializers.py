@@ -14,12 +14,7 @@ class SpamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Spam
         fields = '__all__'  
-        
-class ReadMessageSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = Message
-        fields = ('is_read',)
+
         
 class SpamMessageSerializer(serializers.ModelSerializer):
     
@@ -42,5 +37,5 @@ class ReceiverMsgSerializer(serializers.ModelSerializer):
     flavor = FlavorImgSerializer()
     class Meta:
         model = Message
-        fields = ('id', 'sender', 'receiver', 'flavor', 'is_anonymous', 'content','is_spam','created_at',)
+        fields = ('id', 'sender', 'receiver', 'flavor', 'is_anonymous', 'content','is_read','is_spam','created_at',)
         

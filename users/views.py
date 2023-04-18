@@ -1,6 +1,6 @@
 from . import serializers
 import requests
-from .models import User, TemporalNickname
+from .models import User, TemporalNickname, BannedUser
 from rest_framework.views    import APIView
 from rest_framework.response import Response
 from rest_framework import exceptions, decorators, permissions, status
@@ -12,8 +12,12 @@ from django.http import Http404
 from django.contrib.auth import authenticate
 from datetime import datetime, timedelta
 from myflavors.serializers import MyflavorSerializer
+from flavors.serializers import FlavorSerializer
 from django.db import transaction
 from myflavors.models import Myflavor
+from flavors.models import Flavor
+from django.core.cache import cache
+
 
 def get_tokens_for_user(user):
     
@@ -85,10 +89,16 @@ class KakaoLoginView(APIView) :
     def post(self, request):
                     
         kakao_id, kakao_age, kakao_gender = kakao_access(request)  
-        # kakao_id, kakao_age, kakao_gender = 3736378603, None, None
+        # kakao_id, kakao_age, kakao_gender = 3736378603, None, None        
+        banned_user = cache.get('banned_user')
+        if banned_user is None:
+            banned_user = [user.username for user in BannedUser.objects.all()]
+            cache.set('banned_user', banned_user, None)
+            
+        if '1'+str(kakao_id) in banned_user:
+            return Response(data={'error' : '가입금지유저'}, status=status.HTTP_403_FORBIDDEN)
                                             
         try:
-            User.objects.get(username='1'+str(kakao_id))
             user = User.objects.get(username='1'+str(kakao_id))
             
             if user.is_active == True:
@@ -156,7 +166,7 @@ class UserInfoRegisterView(APIView) :
         except:
             return Response(data={'error':"This user does not exist"}, status=status.HTTP_404_NOT_FOUND)
             
-        user_id = request.user.id
+        user_id = user.id
         nickname_serializer = serializers.UserNicknameSerializer(user, data=request.data, partial = True)
         nickname_serializer.is_valid(raise_exception=True)
         
@@ -173,11 +183,11 @@ class UserInfoRegisterView(APIView) :
             copy_data['user'] = user_id
             
             for flavor in flavors:
-                copy_data['flavor'] = flavor
+                copy_data['flavor'] = flavor              
                 myflavor_serializer = MyflavorSerializer(data=copy_data)
                 myflavor_serializer.is_valid(raise_exception=True)
                 myflavor_serializer.save()
-                
+            cache.set(f'flavors_{user_id}', flavors, 60*60*24*7*5)    
             user.is_active = True            
             user.last_login = timezone.now()
             user.save()
@@ -243,6 +253,45 @@ class LogoutView(APIView):
             return res
         except:
             raise exceptions.ParseError("Invalid token")
+        
+        
+@decorators.permission_classes([permissions.IsAuthenticated])
+class DeleteAccountView(APIView):
+    def post(self, request):
+        try:
+            with transaction.atomic():
+                user_id = request.user.id
+                # user_id = 9
+                user = User.objects.get(id = user_id)
+                
+                if user.yellow_card == 3:
+                    BannedUser.objects.create(username = user.username)
+                    
+                user.delete()
+                
+                #캐시삭제
+                cache.delete(f'sender_msg_{user_id}')
+                cache.delete(f'receiver_msg_{user_id}')
+                cache.delete(f'flavors_{user_id}')
+                cache.delete(f'change_flavor_{user_id}')
+                
+                refreshToken = request.COOKIES.get('refresh')
+                
+                token = RefreshToken(refreshToken)
+                token.blacklist()
+                res = Response()
+                res.delete_cookie(
+                    key = settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                    domain=settings.SIMPLE_JWT['AUTH_COOKIE_DOMAIN']
+                    )
+                res.delete_cookie("X-CSRFToken")
+                res.delete_cookie("csrftoken")
+                # res["X-CSRFToken"]=None
+                res.data = {"Success" : "Signout successfully"}
+                            
+                return res
+        except:
+            raise exceptions.ParseError("Invalid token")
   
 @decorators.permission_classes([permissions.IsAuthenticated])                
 class EditNicknameView(APIView):
@@ -281,19 +330,37 @@ class EditNicknameView(APIView):
 @decorators.permission_classes([permissions.IsAuthenticated])                
 class MyflavorView(APIView):   
     def get(self, request):
-        user_id = request.user.id        
-        serializer = MyflavorSerializer(Myflavor.objects.filter(user = user_id), many=True)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)   
+        user_id = request.user.id   
+        my_flavors = cache.get(f'flavors_{user_id}')
+        if my_flavors is None:
+            user = User.objects.get(id = user_id)
+            my_flavors = [myflavor.flavor_id for myflavor in user.myflavor.all()]
+            cache.set(f'flavors_{user_id}', my_flavors, 60*60*24*7*5) 
+                        
+        total_flavors = cache.get('total_flavors')
+        if total_flavors is None:
+            flavors = Flavor.objects.all()
+            serializer = FlavorSerializer(flavors, many=True)
+            total_flavors = serializer.data
+            cache.set('total_flavors', serializer.data, None)   
+           
+        my_flavors = [flavor for flavor in total_flavors if flavor['id'] in my_flavors]    
+        return Response(data=my_flavors, status=status.HTTP_200_OK)   
 
 @decorators.permission_classes([permissions.IsAuthenticated])                
 class EditMyflavorView(APIView):   
     def get(self, request):
         user_id = request.user.id
-        last_edit = Myflavor.objects.filter(user = user_id).last().created_at
-        after_one_week = last_edit + timedelta(weeks=1)
+        after_one_week = cache.get(f'change_flavor_{user_id}')
+        
+        if after_one_week is None:        
+            last_edit = Myflavor.objects.filter(user = user_id).last().created_at
+            after_one_week = last_edit + timedelta(weeks=1)
+            cache.set(f'change_flavor_{user_id}', after_one_week, 60*60*24*7*5) 
         now = timezone.now()
         if now.strftime('%Y-%m-%d') < after_one_week.strftime('%Y-%m-%d'):
             return Response(data={'message': f"{after_one_week.strftime('%Y-%m-%d')}"}, status=status.HTTP_406_NOT_ACCEPTABLE)  
+        
         return Response(status=status.HTTP_200_OK)       
     
     def post(self, request):
@@ -312,6 +379,8 @@ class EditMyflavorView(APIView):
                 myflavor_serializer = MyflavorSerializer(data=copy_data)
                 myflavor_serializer.is_valid(raise_exception=True)
                 myflavor_serializer.save()
+            cache.set(f'flavors_{user_id}', flavors, 60*60*24*7*5)    
+            cache.set(f'change_flavor_{user_id}', timezone.now()+ timedelta(weeks=1), 60*60*24*7*5) 
             serializer = MyflavorSerializer(Myflavor.objects.filter(user = user_id), many=True)
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         
