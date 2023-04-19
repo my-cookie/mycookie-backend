@@ -16,8 +16,9 @@ class FlavorsView(APIView) :
         if total_flavors is None:
             flavors = Flavor.objects.all()
             serializer = serializers.FlavorSerializer(flavors, many=True)
-            cache.set('total_flavors', serializer.data, None)        
+            total_flavors = serializer.data
+            cache.set('total_flavors', total_flavors, None)        
         
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response(data=total_flavors, status=status.HTTP_200_OK)
         
         
