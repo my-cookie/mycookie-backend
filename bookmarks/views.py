@@ -26,9 +26,10 @@ class BookmarkView(APIView) :
     
     def post(self, request):
         
-        user_id = request.user.id 
+        user_id = request.user.id
         copy_data = request.data.copy()
-        
+        if request.data['target'] == user_id:
+            return Response(data='owner and target are same', status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
             bookmarks = cache.get(f'bookmarks_{user_id}')
             
@@ -67,11 +68,11 @@ class BookmarkView(APIView) :
                     bookmarks = bookmarks_serializer.data
                     cache.set(f'bookmarks_{user_id}', bookmarks, 60*60*24) 
                     
-                    bookmark_deleted = Bookmark.objects.get(owner = user_id, target=request.data['target'])
-                    bookmark_deleted.delete()
-                    bookmarks = [bookmark for bookmark in bookmarks if request.data['target'] != bookmark["target"]["id"]]
-                    cache.set(f'bookmarks_{user_id}', bookmarks, 60*60*24) 
-                    return Response(data='deleted', status=status.HTTP_200_OK) 
+                bookmark_deleted = Bookmark.objects.get(owner = user_id, target=request.data['target'])
+                bookmark_deleted.delete()
+                bookmarks = [bookmark for bookmark in bookmarks if request.data['target'] != bookmark["target"]["id"]]
+                cache.set(f'bookmarks_{user_id}', bookmarks, 60*60*24) 
+                return Response(data='deleted', status=status.HTTP_200_OK) 
             
         except Bookmark.DoesNotExist:
             return Response(data={'error':'this bookmark does not exist'}, status=status.HTTP_404_NOT_FOUND) 
