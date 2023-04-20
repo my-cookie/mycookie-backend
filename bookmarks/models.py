@@ -7,4 +7,4 @@ class Bookmark(models.Model):
     target = models.ForeignKey('users.User', related_name='bookmark_target', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.owner
+        return f'{self.owner}'
