@@ -7,6 +7,7 @@ urlpatterns = [
     path('remain',views.RemainMsgView.as_view()),
     path('sender',views.SenderMsgView.as_view()),
     path('receiver',views.ReceiverMsgView.as_view()),
+    path('total',views.TotalMessageView.as_view()),
     path('spam',views.SpamReportView.as_view()),
     path('sender/delete',views.SenderDeleteMsgView.as_view()),
     path('receiver/delete',views.ReceiverDeleteMsgView.as_view()),

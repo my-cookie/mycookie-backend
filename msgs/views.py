@@ -331,4 +331,30 @@ class SenderCancelMsgView(APIView) :
                 return Response(status=status.HTTP_200_OK)
         except Message.DoesNotExist:
             return Response(data={'error':'this message is does not exist'}, status=status.HTTP_404_NOT_FOUND)
-         
+
+@decorators.permission_classes([permissions.IsAuthenticated])
+class TotalMessageView(APIView) :
+    def get(self, request):
+        # user_id = 10
+        user_id = request.user.id
+        try:
+            send_msgs = cache.get(f'sender_msg_{user_id}')
+            if send_msgs is None:
+                msgs = Message.objects.filter(sender = user_id, is_success = True, sender_deleted = False, sender_canceled = False)
+                serializer = serializers.SenderMsgSerializer(msgs, many=True)
+                send_msgs = serializer.data
+                cache.set(f'sender_msg_{user_id}', send_msgs, 60*60*24)
+                
+            receive_msgs = cache.get(f'receiver_msg_{user_id}')
+            if receive_msgs is None:
+                msgs = Message.objects.filter(receiver = user_id, is_success = True, receiver_deleted = False, sender_canceled = False)
+                msgs_serializer = serializers.ReceiverMsgSerializer(msgs, many=True)
+                receive_msgs = msgs_serializer.data
+                cache.set(f'receiver_msg_{user_id}', msgs, 60*60*24)
+                
+            return Response(data={'send': send_msgs,'receive': receive_msgs}, status=status.HTTP_200_OK)
+        
+        except Message.DoesNotExist:
+            return Response(data={'error':'this message is does not exist'}, status=status.HTTP_404_NOT_FOUND)
+            
+            
