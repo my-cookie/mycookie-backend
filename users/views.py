@@ -58,7 +58,7 @@ def kakao_access(request):
     data = {
         'grant_type': 'authorization_code',
         'client_id': settings.KAKAO_REST_API_KEY,
-        'redirection_uri': 'http://localhost:3000/oauth/callback/kakao',
+        'redirection_uri': settings.KAKAO_REDIRECT_URL,
         'code': auth_code
     }
 

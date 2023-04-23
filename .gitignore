@@ -176,6 +176,9 @@ uwsgi.sock
 uwsgi.ini
 cron_logs/
 
+#test
+tests.py
+factories.py
 #기타
 *.rdb
 # PyCharm

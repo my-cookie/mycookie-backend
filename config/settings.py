@@ -27,7 +27,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['http://127.0.0.1:3000','http://localhost:3000', 'https://www.mycookie.site']
 
 
 import json
@@ -37,7 +37,7 @@ secrets = json.loads(open(SECRET_BASE_FILE).read())
 
 SECRET_KEY = secrets['SECRET_KEY']
 KAKAO_REST_API_KEY = secrets["kakao_rest_api_key"]
-
+KAKAO_REDIRECT_URL = secrets["kakao_redirect_url"]
 # Application definition
 
 INSTALLED_APPS = [
@@ -237,7 +237,7 @@ SIMPLE_JWT = {
 }
 
 # CORS 관련 추가
-CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000','http://localhost:3000', ]
+CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000','http://localhost:3000', 'https://www.mycookie.site']
 CORS_ALLOW_CREDENTIALS = True #쿠키가 cross-site HTTP 요청에 포함될 수 있다
 CORS_ALLOW_METHODS = [
     'DELETE',
