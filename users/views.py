@@ -196,11 +196,12 @@ class UserInfoRegisterView(APIView) :
 @decorators.permission_classes([permissions.IsAuthenticated])
 class NicknameSearchView(APIView) :
     def post(self, request):
+        user_id = request.user.id
         
         if not 'nickname' in request.data:
             return Response(data={'error' : 'nickname is required'}, status=status.HTTP_400_BAD_REQUEST) 
 
-        users = User.objects.filter(nickname__contains = request.data['nickname'], is_active=True).exclude(is_staff = True) 
+        users = User.objects.filter(nickname__contains = request.data['nickname'], is_active=True).exclude(is_staff = True, id=user_id) 
         serializer = serializers.UserNickSearchSerializer(users, many=True)
         
         if request.data["nickname"] == "":
@@ -388,7 +389,14 @@ class EditMyflavorView(APIView):
             serializer = MyflavorSerializer(Myflavor.objects.filter(user = user_id), many=True)
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         
-            
+@decorators.permission_classes([permissions.IsAuthenticated])                
+class UserUuidView(APIView):   
+    def get(self, request):
+        user_id = request.user.id 
+        user = User.objects.get(id=user_id)
+        serializer = serializers.UserInfoSerializer(user)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+                   
              
             
             

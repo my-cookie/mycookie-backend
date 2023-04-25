@@ -27,7 +27,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['http://127.0.0.1:3000','http://localhost:3000', 'https://www.mycookie.site']
+ALLOWED_HOSTS = ['*']
 
 
 import json
@@ -226,7 +226,7 @@ SIMPLE_JWT = {
     # Cookie name. Enables cookies if value is set.
     'AUTH_COOKIE_REFRESH': 'refresh',
     # A string like "example.com", or None for standard domain cookie. 나중에 client domain 주소로 수정
-    'AUTH_COOKIE_DOMAIN': None,
+    'AUTH_COOKIE_DOMAIN': '.mycookie.site',
     # # Whether the auth cookies should be secure (https:// only).
     'AUTH_COOKIE_SECURE': True, 
     # # Http only cookie flag.It's not fetch by javascript.

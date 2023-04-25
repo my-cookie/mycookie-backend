@@ -12,5 +12,6 @@ urlpatterns = [
     path('sender/delete',views.SenderDeleteMsgView.as_view()),
     path('receiver/delete',views.ReceiverDeleteMsgView.as_view()),
     path('sender/cancel',views.SenderCancelMsgView.as_view()),
+    path('receiver/alarm',views.SingleReceiverMessageView.as_view()),
      
 ]

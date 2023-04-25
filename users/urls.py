@@ -14,4 +14,5 @@ urlpatterns = [
     path('nickname/edit', views.EditNicknameView.as_view()),
     path('myflavor/edit', views.EditMyflavorView.as_view()),
     path('myflavor', views.MyflavorView.as_view()),
+    path('info/uuid', views.UserUuidView.as_view()),
 ]
