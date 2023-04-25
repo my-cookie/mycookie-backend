@@ -178,7 +178,7 @@ class UserInfoRegisterView(APIView) :
         with transaction.atomic():
             nickname_serializer.save()
             
-            flavors = request.data['flavor'].split(',')
+            flavors = [int(flavor) for flavor in request.data['flavor'].split(',')]
             copy_data = request.data.copy()
             copy_data['user'] = user_id
             
@@ -372,7 +372,7 @@ class EditMyflavorView(APIView):
         if not 'flavor' in request.data:
             return Response(data={'error':'flavor is required'}, status=status.HTTP_400_BAD_REQUEST)
         user_id = request.user.id 
-        flavors = request.data['flavor'].split(',')        
+        flavors = [int(flavor) for flavor in request.data['flavor'].split(',')]     
       
         copy_data = request.data.copy()
         copy_data['user'] = user_id   

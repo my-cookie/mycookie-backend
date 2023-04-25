@@ -30,7 +30,6 @@ class MessegeRoomConsumer(WebsocketConsumer):
         if 'is_read' in text_data_json:
             
             msg_id = text_data_json['msg_id']
-            sender_uuid = text_data_json['sender_uuid']
             is_read = text_data_json['is_read']
 
             async_to_sync(self.channel_layer.group_send)(
@@ -38,7 +37,6 @@ class MessegeRoomConsumer(WebsocketConsumer):
                 {
                     'type': 'chat_message',
                     'msg_id': msg_id,
-                    'sender_uuid': sender_uuid,
                     'is_read': is_read
                 }
             )
@@ -46,14 +44,12 @@ class MessegeRoomConsumer(WebsocketConsumer):
         # 메시지 발송 처리
         else:
             msg_id = text_data_json['msg_id']
-            receiver_uuid = text_data_json['receiver_uuid']
 
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
                     'type': 'chat_message',
                     'msg_id': msg_id,
-                    'receiver_uuid': receiver_uuid
                 }
             )
         
@@ -65,23 +61,19 @@ class MessegeRoomConsumer(WebsocketConsumer):
         # 메시지 읽음 처리: 프론트에서 해당 메시지 번호에 대한 디스플레이를 읽음으로 바꾼다
         if 'is_read' in event:
             msg_id = event['msg_id']
-            sender_uuid = event['sender_uuid']
             is_read = event['is_read']
             # Send message to WebSocket
             self.send(text_data=json.dumps({
                 'msg_id': msg_id,
-                'sender_uuid': sender_uuid,
                 'is_read': is_read
             }))
             
         # 메시지 도착 알림
         else:
             msg_id = event['msg_id']
-            receiver_uuid = event['receiver_uuid']
             # Send message to WebSocket
             self.send(text_data=json.dumps({
                 'msg_id': msg_id,
-                'receiver_uuid': receiver_uuid
             }))
         
-        #프론트에서 메시지를 받을 때 user_uuid == receiver_uuid 확인 필요
+   
