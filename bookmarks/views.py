@@ -48,6 +48,9 @@ class BookmarkView(APIView) :
             serializer.is_valid(raise_exception=True)
             serializer.save()
             
+            bookmark = Bookmark.objects.get(id = serializer.data['id'])
+            serializer = serializers.BookmarksSerializer(bookmark)
+            
             bookmarks = bookmarks.append(serializer.data)
             cache.set(f'bookmarks_{user_id}', bookmarks, 60*60*24)    
             
