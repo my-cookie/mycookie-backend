@@ -201,7 +201,7 @@ class NicknameSearchView(APIView) :
         if not 'nickname' in request.data:
             return Response(data={'error' : 'nickname is required'}, status=status.HTTP_400_BAD_REQUEST) 
 
-        users = User.objects.filter(nickname__contains = request.data['nickname'], is_active=True).exclude(is_staff = True, id=user_id) 
+        users = User.objects.filter(nickname__contains = request.data['nickname'], is_active=True).exclude(is_staff = True).exclude(id=user_id) 
         serializer = serializers.UserNickSearchSerializer(users, many=True)
         
         if request.data["nickname"] == "":
