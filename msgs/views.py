@@ -356,5 +356,15 @@ class TotalMessageView(APIView) :
         
         except Message.DoesNotExist:
             return Response(data={'error':'this message is does not exist'}, status=status.HTTP_404_NOT_FOUND)
-            
+
+
+@decorators.permission_classes([permissions.IsAuthenticated])
+class SingleReceiverMessageView(APIView) : 
+    def get(self, request):
+        message_id = request.GET.get('message_id', None)
+        msgs = Message.objects.get(id=message_id)
+        serializer = serializers.ReceiverMsgSerializer(msgs)
+        return Response(data=serializer.data, status=status.HTTP_200_OK) 
+
+        
             
