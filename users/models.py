@@ -35,10 +35,10 @@ class BannedUser(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     
 class SiteInfo(models.Model):
-    today_user = models.PositiveIntegerField(default=0, null=False)
-    realtime_user = models.PositiveIntegerField(default=0, null=False)
-    current_user = models.PositiveIntegerField(default=0, null=False)
-    total_user = models.PositiveIntegerField(default=0, null=False)
+    today_user = models.PositiveIntegerField(default=0, null=False) #오늘 방문한 유저 수
+    realtime_user = models.PositiveIntegerField(default=0, null=False) #현재 소켓 접속자 수
+    current_user = models.PositiveIntegerField(default=0, null=False) #현재 가입자 수
+    total_user = models.PositiveIntegerField(default=0, null=False) #누적 가입자 수
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
     

@@ -2,7 +2,9 @@
 import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
-# from .models import Message
+from django.utils import timezone
+from users.models import SiteInfo
+
 
 class MessegeRoomConsumer(WebsocketConsumer):
     def connect(self):
@@ -14,7 +16,13 @@ class MessegeRoomConsumer(WebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-        self.accept()       
+        self.accept()  
+        
+        now = timezone.now().strftime('%Y-%m-%d')
+        if SiteInfo.objects.filter(created_at__includes = now).exists():
+            today_data = SiteInfo.objects.latest('id')
+            today_data.realtime_user += 1
+            today_data.save()
         
     def disconnect(self, close_code):
         # Leave room group
@@ -22,6 +30,12 @@ class MessegeRoomConsumer(WebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
+        
+        now = timezone.now().strftime('%Y-%m-%d')
+        if SiteInfo.objects.filter(created_at__includes = now).exists():
+            today_data = SiteInfo.objects.latest('id')
+            today_data.realtime_user -= 1
+            today_data.save()
 
     def receive(self, text_data):
         # Receive message from WebSocket

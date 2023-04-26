@@ -104,6 +104,16 @@ class KakaoLoginView(APIView) :
             if user.is_active == True:
                 user.last_login = timezone.now()
                 user.save()
+                
+                now = timezone.now().strftime('%Y-%m-%d')
+                if SiteInfo.objects.filter(created_at__includes = now).exists():
+                    today_data = SiteInfo.objects.latest('id')
+                    today_data.today_user += 1
+                    today_data.save()
+                else:
+                    latest_data = SiteInfo.objects.latest('id')
+                    SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
+                
                 return login(user) 
             elif user.yellow_card >= 3:
                 return Response(data={'error' : 'banned user'}, status=status.HTTP_400_BAD_REQUEST)
@@ -191,6 +201,17 @@ class UserInfoRegisterView(APIView) :
             user.is_active = True            
             user.last_login = timezone.now()
             user.save()
+            now = timezone.now().strftime('%Y-%m-%d')
+            if SiteInfo.objects.filter(created_at__includes = now).exists():
+                today_data = SiteInfo.objects.latest('id')
+                today_data.today_user += 1
+                today_data.current_user += 1
+                today_data.total_user += 1
+                today_data.save()
+            else:
+                latest_data = SiteInfo.objects.latest('id')
+                SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user+1, total_user=latest_data.total_user+1)
+                
             return login(user)  
          
 @decorators.permission_classes([permissions.IsAuthenticated])
@@ -270,6 +291,14 @@ class DeleteAccountView(APIView):
                     
                 user.delete()
                 
+                now = timezone.now().strftime('%Y-%m-%d')
+                
+                if SiteInfo.objects.filter(created_at__includes = now).exists():
+                    today_data = SiteInfo.objects.latest('id')
+                    today_data.current_user -= 1
+                    today_data.save()
+               
+                    
                 #캐시삭제
                 try:
                     cache.delete(f'sender_msg_{user_id}')
