@@ -7,7 +7,7 @@ from rest_framework import exceptions, decorators, permissions, status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt import views as jwt_views, serializers as jwt_serializers, exceptions as jwt_exceptions
 from config import settings
-# from django.utils import datetime
+from django.utils import timezone
 from django.http import Http404
 from django.contrib.auth import authenticate
 from datetime import datetime, timedelta
@@ -117,7 +117,7 @@ class KakaoLoginView(APIView) :
                         number_user = User.objects.all().count()
                         SiteInfo.objects.create(today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)
                 
-                user.last_login = datetime.now()
+                user.last_login = timezone.localtime()
                 user.save()
           
                 return login(user) 
@@ -237,7 +237,7 @@ class UserInfoRegisterView(APIView) :
                 myflavor_serializer.save()
             cache.set(f'flavors_{user_id}', flavors, 60*60*24*7*5)    
             user.is_active = True            
-            user.last_login = datetime.now()
+            user.last_login = timezone.localtime()
             user.save()
             
             try:
