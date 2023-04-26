@@ -111,9 +111,13 @@ class KakaoLoginView(APIView) :
                     today_data.today_user += 1
                     today_data.save()
                 else:
-                    latest_data = SiteInfo.objects.latest('id')
-                    SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
-                
+                    try:
+                        latest_data = SiteInfo.objects.latest('id')
+                        SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
+                    except SiteInfo.DoesNotExist:
+                        number_user = SiteInfo.objects.all().count()
+                        SiteInfo.objects.create(today_user=1, current_user=number_user, total_user=number_user)
+                            
                 return login(user) 
             elif user.yellow_card >= 3:
                 return Response(data={'error' : 'banned user'}, status=status.HTTP_400_BAD_REQUEST)
@@ -209,9 +213,12 @@ class UserInfoRegisterView(APIView) :
                 today_data.total_user += 1
                 today_data.save()
             else:
-                latest_data = SiteInfo.objects.latest('id')
-                SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user+1, total_user=latest_data.total_user+1)
-                
+                try:
+                    latest_data = SiteInfo.objects.latest('id')
+                    SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user+1, total_user=latest_data.total_user+1)
+                except SiteInfo.DoesNotExist:
+                    number_user = SiteInfo.objects.all().count()
+                    SiteInfo.objects.create(today_user=1, current_user=number_user, total_user=number_user)
             return login(user)  
          
 @decorators.permission_classes([permissions.IsAuthenticated])
