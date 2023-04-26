@@ -7,7 +7,7 @@ from rest_framework import exceptions, decorators, permissions, status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt import views as jwt_views, serializers as jwt_serializers, exceptions as jwt_exceptions
 from config import settings
-from django.utils import timezone
+# from django.utils import datetime
 from django.http import Http404
 from django.contrib.auth import authenticate
 from datetime import datetime, timedelta
@@ -102,7 +102,7 @@ class KakaoLoginView(APIView) :
             user = User.objects.get(username='1'+str(kakao_id))
             
             if user.is_active == True:
-                now = timezone.now().strftime('%Y-%m-%d')
+                now = datetime.now().strftime('%Y-%m-%d')
                 if SiteInfo.objects.filter(created_at__contains = now).exists():
                     today_data = SiteInfo.objects.latest('id')
                     today_data.today_visit_user += 1
@@ -117,7 +117,7 @@ class KakaoLoginView(APIView) :
                         number_user = User.objects.all().count()
                         SiteInfo.objects.create(today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)
                 
-                user.last_login = timezone.now()
+                user.last_login = datetime.now()
                 user.save()
           
                 return login(user) 
@@ -237,7 +237,7 @@ class UserInfoRegisterView(APIView) :
                 myflavor_serializer.save()
             cache.set(f'flavors_{user_id}', flavors, 60*60*24*7*5)    
             user.is_active = True            
-            user.last_login = timezone.now()
+            user.last_login = datetime.now()
             user.save()
             
             try:
@@ -269,7 +269,7 @@ class UserInfoRegisterView(APIView) :
             except PreferenceInfo.DoesNotExist:
                 PreferenceInfo.objects.create(flavor='0,0,0,0,0,0', flavor_num='0,0,0,0,0,0', age="0,0,0,0,0,0,0,0", gender="0,0,0")
          
-            now = timezone.now().strftime('%Y-%m-%d')
+            now = datetime.now().strftime('%Y-%m-%d')
             if SiteInfo.objects.filter(created_at__contains = now).exists():
                 today_data = SiteInfo.objects.latest('id')
                 today_data.today_user += 1
@@ -364,7 +364,7 @@ class DeleteAccountView(APIView):
                     
                 user.delete()
                 
-                now = timezone.now().strftime('%Y-%m-%d')
+                now = datetime.now().strftime('%Y-%m-%d')
                 
                 
                 if SiteInfo.objects.filter(created_at__contains = now).exists():
@@ -473,7 +473,7 @@ class EditMyflavorView(APIView):
             last_edit = Myflavor.objects.filter(user = user_id).last().created_at
             after_one_week = last_edit + timedelta(weeks=1)
             cache.set(f'change_flavor_{user_id}', after_one_week, 60*60*24*7*5) 
-        now = timezone.now()
+        now = datetime.now()
         if now.strftime('%Y-%m-%d') < after_one_week.strftime('%Y-%m-%d'):
             return Response(data={'message': f"{after_one_week.strftime('%Y-%m-%d')}"}, status=status.HTTP_406_NOT_ACCEPTABLE)  
         
@@ -496,7 +496,7 @@ class EditMyflavorView(APIView):
                 myflavor_serializer.is_valid(raise_exception=True)
                 myflavor_serializer.save()
             cache.set(f'flavors_{user_id}', flavors, 60*60*24*7*5)    
-            cache.set(f'change_flavor_{user_id}', timezone.now()+ timedelta(weeks=1), 60*60*24*7*5) 
+            cache.set(f'change_flavor_{user_id}', datetime.now()+ timedelta(weeks=1), 60*60*24*7*5) 
             serializer = MyflavorSerializer(Myflavor.objects.filter(user = user_id), many=True)
             
             try:
