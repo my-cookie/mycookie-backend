@@ -21,7 +21,7 @@ class MessegeRoomConsumer(WebsocketConsumer):
         now = timezone.now().strftime('%Y-%m-%d')
         if SiteInfo.objects.filter(created_at__contains = now).exists():
             today_data = SiteInfo.objects.latest('id')
-            today_data.realtime_user += 1
+            today_data.realtime_user = len(self.channel_layer.group_channels(self.room_name))
             today_data.save()
         
     def disconnect(self, close_code):
@@ -31,11 +31,11 @@ class MessegeRoomConsumer(WebsocketConsumer):
             self.channel_name
         )
         
-        now = timezone.now().strftime('%Y-%m-%d')
-        if SiteInfo.objects.filter(created_at__contains = now).exists():
-            today_data = SiteInfo.objects.latest('id')
-            today_data.realtime_user -= 1
-            today_data.save()
+        # now = timezone.now().strftime('%Y-%m-%d')
+        # if SiteInfo.objects.filter(created_at__contains = now).exists():
+        #     today_data = SiteInfo.objects.latest('id')
+        #     today_data.realtime_user -= 1
+        #     today_data.save()
 
     def receive(self, text_data):
         # Receive message from WebSocket
