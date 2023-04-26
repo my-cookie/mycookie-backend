@@ -19,7 +19,7 @@ class MessegeRoomConsumer(WebsocketConsumer):
         self.accept()  
         
         now = timezone.now().strftime('%Y-%m-%d')
-        if SiteInfo.objects.filter(created_at__includes = now).exists():
+        if SiteInfo.objects.filter(created_at__contains = now).exists():
             today_data = SiteInfo.objects.latest('id')
             today_data.realtime_user += 1
             today_data.save()
@@ -32,7 +32,7 @@ class MessegeRoomConsumer(WebsocketConsumer):
         )
         
         now = timezone.now().strftime('%Y-%m-%d')
-        if SiteInfo.objects.filter(created_at__includes = now).exists():
+        if SiteInfo.objects.filter(created_at__contains = now).exists():
             today_data = SiteInfo.objects.latest('id')
             today_data.realtime_user -= 1
             today_data.save()

@@ -106,7 +106,7 @@ class KakaoLoginView(APIView) :
                 user.save()
                 
                 now = timezone.now().strftime('%Y-%m-%d')
-                if SiteInfo.objects.filter(created_at__includes = now).exists():
+                if SiteInfo.objects.filter(created_at__contains = now).exists():
                     today_data = SiteInfo.objects.latest('id')
                     today_data.today_user += 1
                     today_data.save()
@@ -202,7 +202,7 @@ class UserInfoRegisterView(APIView) :
             user.last_login = timezone.now()
             user.save()
             now = timezone.now().strftime('%Y-%m-%d')
-            if SiteInfo.objects.filter(created_at__includes = now).exists():
+            if SiteInfo.objects.filter(created_at__contains = now).exists():
                 today_data = SiteInfo.objects.latest('id')
                 today_data.today_user += 1
                 today_data.current_user += 1
@@ -293,7 +293,7 @@ class DeleteAccountView(APIView):
                 
                 now = timezone.now().strftime('%Y-%m-%d')
                 
-                if SiteInfo.objects.filter(created_at__includes = now).exists():
+                if SiteInfo.objects.filter(created_at__contains = now).exists():
                     today_data = SiteInfo.objects.latest('id')
                     today_data.current_user -= 1
                     today_data.save()
