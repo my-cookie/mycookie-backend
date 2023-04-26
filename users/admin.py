@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User
+from .models import User, TemporalNickname, BannedUser, SiteInfo
 from django.contrib.auth.admin import UserAdmin
 
 
@@ -37,3 +37,18 @@ class CustomUserAdmin(UserAdmin):
 	
     readonly_fields = ("date_joined", "last_login",)
 
+
+
+@admin.register(TemporalNickname)
+class TemporalNicknameAdmin(admin.ModelAdmin):  
+    list_display = ('id', 'user', 'nickname', 'created_at')
+   
+    
+@admin.register(BannedUser)
+class BannedUserAdmin(admin.ModelAdmin):  
+    list_display = ('id', 'username', 'created_at', )
+    
+@admin.register(SiteInfo)
+class SiteInfoAdmin(admin.ModelAdmin):  
+    list_display = ('id', 'today_user', 'realtime_user', 'current_user', 'total_user', 'created_at', 'updated_at')
+  
