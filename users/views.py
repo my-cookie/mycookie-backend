@@ -162,7 +162,7 @@ class KakaoLoginView(APIView) :
                     if i == gender_ref_index:
                         new_db_gender.append(str(int(gender_num)+1))
                     else:
-                        new_db_age.append(gender_num)
+                        new_db_gender.append(gender_num)
                 gender_result = ','.join(new_db_gender)
                 
                 latest_data.age = age_result
