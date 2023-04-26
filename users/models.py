@@ -35,12 +35,25 @@ class BannedUser(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     
 class SiteInfo(models.Model):
-    today_user = models.PositiveIntegerField(default=0, null=False) #오늘 방문한 유저 수
+    today_visit_user = models.PositiveIntegerField(default=0, null=False) #오늘 방문한 유저 수
+    today_user = models.PositiveIntegerField(default=0, null=False) #오늘 로그인한 유저 수
+    today_register_user = models.PositiveIntegerField(default=0, null=False) #오늘 신규가입자
+    today_drop_user = models.PositiveIntegerField(default=0, null=False) #오늘 탈퇴가입자
+    today_message = models.PositiveIntegerField(default=0, null=False) #오늘 메시지 전송량
+    today_success_message = models.PositiveIntegerField(default=0, null=False) #오늘 메시지 전송량
     realtime_user = models.PositiveIntegerField(default=0, null=False) #현재 소켓 접속자 수
     current_user = models.PositiveIntegerField(default=0, null=False) #현재 가입자 수
     total_user = models.PositiveIntegerField(default=0, null=False) #누적 가입자 수
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+    
+class PreferenceInfo(models.Model):
+    flavor = models.CharField(max_length=255, null=False)
+    flavor_num = models.CharField(max_length=255, null=False)
+    age = models.CharField(max_length=255, null=False)
+    gender = models.CharField(max_length=255, null=False)
+    
+
     
     
     

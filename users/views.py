@@ -1,6 +1,6 @@
 from . import serializers
 import requests
-from .models import User, TemporalNickname, BannedUser, SiteInfo
+from .models import User, TemporalNickname, BannedUser, SiteInfo, PreferenceInfo
 from rest_framework.views    import APIView
 from rest_framework.response import Response
 from rest_framework import exceptions, decorators, permissions, status
@@ -102,22 +102,24 @@ class KakaoLoginView(APIView) :
             user = User.objects.get(username='1'+str(kakao_id))
             
             if user.is_active == True:
-                user.last_login = timezone.now()
-                user.save()
-                
                 now = timezone.now().strftime('%Y-%m-%d')
                 if SiteInfo.objects.filter(created_at__contains = now).exists():
                     today_data = SiteInfo.objects.latest('id')
-                    today_data.today_user += 1
+                    today_data.today_visit_user += 1
+                    if user.last_login[:10] != now:
+                        today_data.today_user += 1
                     today_data.save()
                 else:
                     try:
                         latest_data = SiteInfo.objects.latest('id')
-                        SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
+                        SiteInfo.objects.create(today_user=1, today_visit_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
                     except SiteInfo.DoesNotExist:
                         number_user = User.objects.all().count()
-                        SiteInfo.objects.create(today_user=1, current_user=number_user, total_user=number_user)
-                            
+                        SiteInfo.objects.create(today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)
+                
+                user.last_login = timezone.now()
+                user.save()
+          
                 return login(user) 
             elif user.yellow_card >= 3:
                 return Response(data={'error' : 'banned user'}, status=status.HTTP_400_BAD_REQUEST)
@@ -137,6 +139,38 @@ class KakaoLoginView(APIView) :
             
             serializer.is_valid(raise_exception=True)
             serializer.save() 
+            
+            age_ref = ['None', '10~19','20~29','30~39','40~49','50~59','60~69','70~79']
+            gender_ref = ['None','male','female']
+            age_ref_index = [i for i, el in enumerate(age_ref) if el == str(kakao_age)][0]
+            gender_ref_index = [i for i, el in enumerate(gender_ref) if el == str(kakao_gender)][0]
+            try:
+                latest_data = PreferenceInfo.objects.latest('id')
+                db_age = latest_data.age.split(',')
+                db_gender = latest_data.gender.split(',')
+                
+                new_db_age = []
+                for i, age_num in enumerate(db_age):
+                    if i == age_ref_index:
+                        new_db_age.append(str(int(age_num)+1))
+                    else:
+                        new_db_age.append(age_num)
+                age_result = ','.join(new_db_age)
+                
+                new_db_gender = []
+                for i, gender_num in enumerate(db_gender):
+                    if i == gender_ref_index:
+                        new_db_gender.append(str(int(gender_num)+1))
+                    else:
+                        new_db_age.append(gender_num)
+                gender_result = ','.join(new_db_gender)
+                
+                latest_data.age = age_result
+                latest_data.gender = gender_result             
+                latest_data.save()
+               
+            except PreferenceInfo.DoesNotExist:
+                PreferenceInfo.objects.create(flavor='0,0,0,0,0,0', flavor_num='0,0,0,0,0,0', age="0,0,0,0,0,0,0,0", gender="0,0,0")
             
             return Response(data={'user_uuid':serializer.data['uuid']}, status=status.HTTP_201_CREATED)
             # 새로운 유저는 프론트에서 정보입력 페이지로 가야한다.
@@ -205,20 +239,52 @@ class UserInfoRegisterView(APIView) :
             user.is_active = True            
             user.last_login = timezone.now()
             user.save()
+            
+            try:
+                latest_data = PreferenceInfo.objects.latest('id')
+                db_flavor = latest_data.flavor.split(',')
+                db_flavor_num = latest_data.flavor_num.split(',')
+                
+                new_flavor = []
+                for i, el in enumerate(db_flavor):
+                    if i+1 in flavors:
+                        new_flavor.append(str(int(el)+1))
+                    else:
+                        new_flavor.append(el)
+                flavor_result = ','.join(new_flavor)
+                
+                new_flavor_num = []
+                this_flavor_num = len(flavors)
+                for i, el in enumerate(db_flavor_num):
+                    if i+1 == this_flavor_num:
+                        new_flavor_num.append(str(int(el)+1))
+                    else:
+                        new_flavor_num.append(el)
+                flavor_num_result = ','.join(new_flavor_num)
+                
+                latest_data.flavor = flavor_result
+                latest_data.flavor_num = flavor_num_result
+                latest_data.save()
+                
+            except PreferenceInfo.DoesNotExist:
+                PreferenceInfo.objects.create(flavor='0,0,0,0,0,0', flavor_num='0,0,0,0,0,0', age="0,0,0,0,0,0,0,0", gender="0,0,0")
+         
             now = timezone.now().strftime('%Y-%m-%d')
             if SiteInfo.objects.filter(created_at__contains = now).exists():
                 today_data = SiteInfo.objects.latest('id')
                 today_data.today_user += 1
+                today_data.today_visit_user += 1
+                today_data.today_register_user += 1
                 today_data.current_user += 1
                 today_data.total_user += 1
                 today_data.save()
             else:
                 try:
                     latest_data = SiteInfo.objects.latest('id')
-                    SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user+1, total_user=latest_data.total_user+1)
+                    SiteInfo.objects.create(today_user=1, today_visit_user=1, today_register_user=1, current_user=latest_data.current_user+1, total_user=latest_data.total_user+1)
                 except SiteInfo.DoesNotExist:
                     number_user = User.objects.all().count()
-                    SiteInfo.objects.create(today_user=1, current_user=number_user, total_user=number_user)
+                    SiteInfo.objects.create(today_user=1, today_visit_user=1, today_register_user=1, current_user=number_user, total_user=number_user)
             return login(user)  
          
 @decorators.permission_classes([permissions.IsAuthenticated])
@@ -300,12 +366,21 @@ class DeleteAccountView(APIView):
                 
                 now = timezone.now().strftime('%Y-%m-%d')
                 
+                
                 if SiteInfo.objects.filter(created_at__contains = now).exists():
                     today_data = SiteInfo.objects.latest('id')
                     today_data.current_user -= 1
+                    today_data.today_drop_user += 1
                     today_data.save()
-               
-                    
+                else:
+                    try:
+                        latest_data = SiteInfo.objects.latest('id')
+                        SiteInfo.objects.create(today_user=1, today_visit_user=1, today_drop_user=1, current_user=latest_data.current_user-1, total_user=latest_data.total_user)
+                    except SiteInfo.DoesNotExist:
+                        number_user = User.objects.all().count()
+                        SiteInfo.objects.create(today_user=1, today_visit_user=1, today_drop_user=1, current_user=number_user, total_user=number_user)
+                
+       
                 #캐시삭제
                 try:
                     cache.delete(f'sender_msg_{user_id}')
@@ -423,6 +498,36 @@ class EditMyflavorView(APIView):
             cache.set(f'flavors_{user_id}', flavors, 60*60*24*7*5)    
             cache.set(f'change_flavor_{user_id}', timezone.now()+ timedelta(weeks=1), 60*60*24*7*5) 
             serializer = MyflavorSerializer(Myflavor.objects.filter(user = user_id), many=True)
+            
+            try:
+                latest_data = PreferenceInfo.objects.latest('id')
+                db_flavor = latest_data.flavor.split(',')
+                db_flavor_num = latest_data.flavor_num.split(',')
+                
+                new_flavor = []
+                for i, el in enumerate(db_flavor):
+                    if i+1 in flavors:
+                        new_flavor.append(str(int(el)+1))
+                    else:
+                        new_flavor.append(el)
+                flavor_result = ','.join(new_flavor)
+                
+                new_flavor_num = []
+                this_flavor_num = len(flavors)
+                for i, el in enumerate(db_flavor_num):
+                    if i+1 == this_flavor_num:
+                        new_flavor_num.append(str(int(el)+1))
+                    else:
+                        new_flavor_num.append(el)
+                flavor_num_result = ','.join(new_flavor_num)
+                
+                latest_data.flavor = flavor_result
+                latest_data.flavor_num = flavor_num_result
+                latest_data.save()
+                
+            except PreferenceInfo.DoesNotExist:
+                PreferenceInfo.objects.create(flavor='0,0,0,0,0,0', flavor_num='0,0,0,0,0,0', age="0,0,0,0,0,0,0,0", gender="0,0,0")
+            
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         
 @decorators.permission_classes([permissions.IsAuthenticated])                
