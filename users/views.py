@@ -115,7 +115,7 @@ class KakaoLoginView(APIView) :
                         latest_data = SiteInfo.objects.latest('id')
                         SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
                     except SiteInfo.DoesNotExist:
-                        number_user = SiteInfo.objects.all().count()
+                        number_user = User.objects.all().count()
                         SiteInfo.objects.create(today_user=1, current_user=number_user, total_user=number_user)
                             
                 return login(user) 
@@ -217,7 +217,7 @@ class UserInfoRegisterView(APIView) :
                     latest_data = SiteInfo.objects.latest('id')
                     SiteInfo.objects.create(today_user=1, current_user=latest_data.current_user+1, total_user=latest_data.total_user+1)
                 except SiteInfo.DoesNotExist:
-                    number_user = SiteInfo.objects.all().count()
+                    number_user = User.objects.all().count()
                     SiteInfo.objects.create(today_user=1, current_user=number_user, total_user=number_user)
             return login(user)  
          
