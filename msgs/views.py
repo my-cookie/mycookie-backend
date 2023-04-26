@@ -4,7 +4,7 @@ from users.models import User, SiteInfo
 from rest_framework.views    import APIView
 from rest_framework.response import Response
 from rest_framework import exceptions, decorators, permissions, status
-from datetime import datetime
+from django.utils import timezone
 from django.db import transaction
 from django.core.cache import cache
 from config import settings
@@ -27,7 +27,7 @@ class SendMsgView(APIView) :
         except User.DoesNotExist:
             return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
         
-        now = datetime.now().strftime('%Y-%m-%d')
+        now = timezone.localtime().strftime('%Y-%m-%d')
         
         count = cache.get(f'count_{user_id}_{copy_data["receiver"]}_{now}')
         if count is None:
@@ -77,12 +77,12 @@ class SendMsgView(APIView) :
             cache.set(f'receiver_msg_{receiver_id}', msgs, 60*60*24)
             cache.set(f'count_{user_id}_{copy_data["receiver"]}_{now}', count+1, 60*60*24)
             
-              
-            if SiteInfo.objects.filter(created_at__contains = now).exists():
-                today_data = SiteInfo.objects.latest('id')
-                today_data.today_message += 1
-                today_data.today_success_message += 1
-                today_data.save()
+            latest_data = SiteInfo.objects.last()
+            if latest_data.created_at.strftime('%Y-%m-%d') == now:  
+            
+                latest_data.today_message += 1
+                latest_data.today_success_message += 1
+                latest_data.save()
             else:
                 try:
                     latest_data = SiteInfo.objects.latest('id')
@@ -100,10 +100,11 @@ class SendMsgView(APIView) :
             serializer.save()
             cache.set(f'count_{user_id}_{copy_data["receiver"]}_{now}', count+1, 60*60*24)
             
-            if SiteInfo.objects.filter(created_at__contains = now).exists():
-                today_data = SiteInfo.objects.latest('id')
-                today_data.today_message += 1
-                today_data.save()
+            latest_data = SiteInfo.objects.last()
+            if latest_data.created_at.strftime('%Y-%m-%d') == now:  
+            
+                latest_data.today_message += 1
+                latest_data.save()
             else:
                 try:
                     latest_data = SiteInfo.objects.latest('id')
@@ -188,7 +189,7 @@ class RemainMsgView(APIView) :
         user_id = request.user.id
         user = User.objects.get(id = user_id)
         # user_id = 7
-        now = datetime.now().strftime('%Y-%m-%d')
+        now = timezone.localtime().strftime('%Y-%m-%d')
         count = cache.get(f'count_{user_id}_{request.data["receiver"]}_{now}')
         if count is None:
             today_msgs = Message.objects.filter(created_at__contains = now)    
