@@ -7,6 +7,7 @@ from rest_framework import exceptions, decorators, permissions, status
 from datetime import datetime
 from django.db import transaction
 from django.core.cache import cache
+from config import settings
 
 #db저장과 동시에 성공여부를 반환한다. 성공일 시 프론트에서 websocket요청
 
@@ -34,7 +35,7 @@ class SendMsgView(APIView) :
             count = today_msgs.filter(sender=user_id, receiver=copy_data['receiver']).count()
             cache.set(f'count_{user_id}_{copy_data["receiver"]}_{now}', count, 60*60*24)
 
-        if count == 3:
+        if count == settings.MAX_MSG:
             return Response(data={'error':'no more message'}, status=status.HTTP_429_TOO_MANY_REQUESTS) 
                
                 
@@ -76,14 +77,14 @@ class SendMsgView(APIView) :
             cache.set(f'receiver_msg_{receiver_id}', msgs, 60*60*24)
             cache.set(f'count_{user_id}_{copy_data["receiver"]}_{now}', count+1, 60*60*24)
                 
-            return Response(data={'msg_id' : serializer.data['id'], "receiver_nickname":receiver.nickname,"is_success" : serializer.data["is_success"], 'receiver_uuid': receiver.uuid, 'remain': 2-count}, status=status.HTTP_201_CREATED)
+            return Response(data={'msg_id' : serializer.data['id'], "receiver_nickname":receiver.nickname,"is_success" : serializer.data["is_success"], 'receiver_uuid': receiver.uuid, 'remain': settings.MAX_MSG-1-count}, status=status.HTTP_201_CREATED)
             
         else:
             serializer = serializers.MessageSerializer(data=copy_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             cache.set(f'count_{user_id}_{copy_data["receiver"]}_{now}', count+1, 60*60*24)
-            return Response(data={"receiver_nickname":receiver.nickname,"receiver":serializer.data['receiver'], "content": serializer.data['content'], "is_anonymous": serializer.data['is_anonymous'],"is_success" : False, 'remain': 2-count}, status=status.HTTP_201_CREATED)
+            return Response(data={"receiver_nickname":receiver.nickname,"receiver":serializer.data['receiver'], "content": serializer.data['content'], "is_anonymous": serializer.data['is_anonymous'],"is_success" : False, 'remain': settings.MAX_MSG-1-count}, status=status.HTTP_201_CREATED)
 
             
 @decorators.permission_classes([permissions.IsAuthenticated])            
@@ -167,7 +168,7 @@ class RemainMsgView(APIView) :
             count = today_msgs.filter(sender=user_id, receiver=request.data['receiver']).count()
             cache.set(f'count_{user_id}_{receiver.id}_{now}', count, 60*60*24)
             
-        return Response(data={'sender_nickname': user.nickname,'receiver_nickname':receiver.nickname,'count':3-count}, status=status.HTTP_200_OK)
+        return Response(data={'sender_nickname': user.nickname,'receiver_nickname':receiver.nickname,'count':settings.MAX_MSG-count}, status=status.HTTP_200_OK)
 
 
 @decorators.permission_classes([permissions.IsAuthenticated])
