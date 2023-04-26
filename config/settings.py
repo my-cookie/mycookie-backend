@@ -71,7 +71,8 @@ INSTALLED_APPS = [
 ]
 
 CRONJOBS = [
- 
+    ('* */2 * * *', 'users.cron.delete_temp_nickname', '>> /root/mycookie-backend/cron_logs/delete_temp_nickname.log'),  
+    ('5 0 * * *', 'msgs.cron.delete_failed_massage', '>> /root/mycookie-backend/cron_logs/delete_failed_massage.log'),  
 ]
 
 REST_FRAMEWORK = {
