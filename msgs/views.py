@@ -103,7 +103,7 @@ class ReadMessageView(APIView) :
                 msg.is_read = True
                 msg.save()                
                 
-                msgs = cache.get(f'sender_msg_{user_id}')
+                msgs = cache.get(f'sender_msg_{sender_id}')
                 if msgs is None:
                     pass
                 else:
@@ -114,7 +114,7 @@ class ReadMessageView(APIView) :
                             temp.append(msg)
                         else:
                             temp.append(msg) 
-                    cache.set(f'sender_msg_{user_id}', temp, 60*60*24)
+                    cache.set(f'sender_msg_{sender_id}', temp, 60*60*24)
                     
                 msgs = cache.get(f'receiver_msg_{user_id}')
                 

@@ -34,3 +34,13 @@ class BannedUser(models.Model):
     username = models.CharField(max_length=20, unique=True, blank=False, null=False)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     
+class SiteInfo(models.Model):
+    today_user = models.PositiveIntegerField(default=0, null=False)
+    realtime_user = models.PositiveIntegerField(default=0, null=False)
+    current_user = models.PositiveIntegerField(default=0, null=False)
+    total_user = models.PositiveIntegerField(default=0, null=False)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+    
+    
+    

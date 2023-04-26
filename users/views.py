@@ -1,6 +1,6 @@
 from . import serializers
 import requests
-from .models import User, TemporalNickname, BannedUser
+from .models import User, TemporalNickname, BannedUser, SiteInfo
 from rest_framework.views    import APIView
 from rest_framework.response import Response
 from rest_framework import exceptions, decorators, permissions, status
