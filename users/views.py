@@ -373,6 +373,17 @@ class DeleteAccountView(APIView):
                 
                 try:
                     related_bookmark_owners = [bookmark.owner for bookmark in Bookmark.objects.filter(target = user_id)]
+                    #캐시삭제
+                
+                    for owner_id in related_bookmark_owners:
+                        cache.delete(f'bookmarks_{owner_id}')
+                    cache.delete(f'sender_msg_{user_id}')
+                    cache.delete(f'receiver_msg_{user_id}')
+                    cache.delete(f'flavors_{user_id}')
+                    cache.delete(f'change_flavor_{user_id}')
+                    cache.delete(f'bookmarks_{user_id}')
+                    
+                
                 except:
                     pass
                 user.delete()
@@ -395,18 +406,7 @@ class DeleteAccountView(APIView):
                     SiteInfo.objects.create(today_user=1, today_visit_user=1, today_drop_user=1, current_user=number_user, total_user=number_user)
                 
        
-                #캐시삭제
-                try:
-                    for owner_id in related_bookmark_owners:
-                        cache.delete(f'bookmarks_{owner_id}')
-                    cache.delete(f'sender_msg_{user_id}')
-                    cache.delete(f'receiver_msg_{user_id}')
-                    cache.delete(f'flavors_{user_id}')
-                    cache.delete(f'change_flavor_{user_id}')
-                    cache.delete(f'bookmarks_{user_id}')
-                    
-                except:
-                    pass
+                
                 
                 refreshToken = request.COOKIES.get('refresh')
                 
