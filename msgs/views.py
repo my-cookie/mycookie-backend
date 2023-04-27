@@ -77,19 +77,20 @@ class SendMsgView(APIView) :
             cache.set(f'receiver_msg_{receiver_id}', msgs, 60*60*24)
             cache.set(f'count_{user_id}_{copy_data["receiver"]}_{now}', count+1, 60*60*24)
             
-            latest_data = SiteInfo.objects.last()
-            if latest_data.created_at.strftime('%Y-%m-%d') == now:  
-            
-                latest_data.today_message += 1
-                latest_data.today_success_message += 1
-                latest_data.save()
-            else:
-                try:
+            try:
+                latest_data = SiteInfo.objects.last()
+                if latest_data.created_at.strftime('%Y-%m-%d') == now:  
+                
+                    latest_data.today_message += 1
+                    latest_data.today_success_message += 1
+                    latest_data.save()
+                else:
+                    
                     latest_data = SiteInfo.objects.latest('id')
                     SiteInfo.objects.create(today_message = 1, today_success_message = 1, today_user=1, today_visit_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
-                except SiteInfo.DoesNotExist:
-                    number_user = User.objects.all().count()
-                    SiteInfo.objects.create(today_message = 1, today_success_message = 1, today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)
+            except SiteInfo.DoesNotExist:
+                number_user = User.objects.all().count()
+                SiteInfo.objects.create(today_message = 1, today_success_message = 1, today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)
             
                 
             return Response(data={'msg_id' : serializer.data['id'], "receiver_nickname":receiver.nickname,"is_success" : serializer.data["is_success"], 'receiver_uuid': receiver.uuid, 'remain': settings.MAX_MSG-1-count}, status=status.HTTP_201_CREATED)
@@ -99,19 +100,19 @@ class SendMsgView(APIView) :
             serializer.is_valid(raise_exception=True)
             serializer.save()
             cache.set(f'count_{user_id}_{copy_data["receiver"]}_{now}', count+1, 60*60*24)
-            
-            latest_data = SiteInfo.objects.last()
-            if latest_data.created_at.strftime('%Y-%m-%d') == now:  
-            
-                latest_data.today_message += 1
-                latest_data.save()
-            else:
-                try:
+            try:
+                latest_data = SiteInfo.objects.last()
+                if latest_data.created_at.strftime('%Y-%m-%d') == now:  
+                
+                    latest_data.today_message += 1
+                    latest_data.save()
+                else:
+                    
                     latest_data = SiteInfo.objects.latest('id')
                     SiteInfo.objects.create(today_message = 1, today_user=1, today_visit_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
-                except SiteInfo.DoesNotExist:
-                    number_user = User.objects.all().count()
-                    SiteInfo.objects.create(today_message = 1, today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)
+            except SiteInfo.DoesNotExist:
+                number_user = User.objects.all().count()
+                SiteInfo.objects.create(today_message = 1, today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)
             return Response(data={"receiver_nickname":receiver.nickname,"receiver":serializer.data['receiver'], "content": serializer.data['content'], "is_anonymous": serializer.data['is_anonymous'],"is_success" : False, 'remain': settings.MAX_MSG-1-count}, status=status.HTTP_201_CREATED)
 
             
