@@ -288,6 +288,9 @@ class UserInfoRegisterView(APIView) :
                         
                         latest_data = SiteInfo.objects.latest('id')
                         SiteInfo.objects.create(today_user=1, today_visit_user=1, today_register_user=1, current_user=latest_data.current_user+1, total_user=latest_data.total_user+1)
+                else:
+                    SiteInfo.objects.create(today_user=1, today_visit_user=1, today_register_user=1, current_user=1, total_user=1)
+                    
             except SiteInfo.DoesNotExist:
                 number_user = User.objects.all().count()
                 SiteInfo.objects.create(today_user=1, today_visit_user=1, today_register_user=1, current_user=number_user, total_user=number_user)
