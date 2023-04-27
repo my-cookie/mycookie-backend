@@ -141,39 +141,40 @@ class KakaoLoginView(APIView) :
             
             serializer.is_valid(raise_exception=True)
             serializer.save() 
-            
-            age_ref = ['None', '10~19','20~29','30~39','40~49','50~59','60~69','70~79']
-            gender_ref = ['None','male','female']
-            age_ref_index = [i for i, el in enumerate(age_ref) if el == str(kakao_age)][0]
-            gender_ref_index = [i for i, el in enumerate(gender_ref) if el == str(kakao_gender)][0]
             try:
-                latest_data = PreferenceInfo.objects.latest('id')
-                db_age = latest_data.age.split(',')
-                db_gender = latest_data.gender.split(',')
+                age_ref = ['None', '10~19','20~29','30~39','40~49','50~59','60~69','70~79']
+                gender_ref = ['None','male','female']
+                age_ref_index = [i for i, el in enumerate(age_ref) if el == str(kakao_age)][0]
+                gender_ref_index = [i for i, el in enumerate(gender_ref) if el == str(kakao_gender)][0]
+                try:
+                    latest_data = PreferenceInfo.objects.latest('id')
+                    db_age = latest_data.age.split(',')
+                    db_gender = latest_data.gender.split(',')
+                    
+                    new_db_age = []
+                    for i, age_num in enumerate(db_age):
+                        if i == age_ref_index:
+                            new_db_age.append(str(int(age_num)+1))
+                        else:
+                            new_db_age.append(age_num)
+                    age_result = ','.join(new_db_age)
+                    
+                    new_db_gender = []
+                    for i, gender_num in enumerate(db_gender):
+                        if i == gender_ref_index:
+                            new_db_gender.append(str(int(gender_num)+1))
+                        else:
+                            new_db_gender.append(gender_num)
+                    gender_result = ','.join(new_db_gender)
+                    
+                    latest_data.age = age_result
+                    latest_data.gender = gender_result             
+                    latest_data.save()
                 
-                new_db_age = []
-                for i, age_num in enumerate(db_age):
-                    if i == age_ref_index:
-                        new_db_age.append(str(int(age_num)+1))
-                    else:
-                        new_db_age.append(age_num)
-                age_result = ','.join(new_db_age)
-                
-                new_db_gender = []
-                for i, gender_num in enumerate(db_gender):
-                    if i == gender_ref_index:
-                        new_db_gender.append(str(int(gender_num)+1))
-                    else:
-                        new_db_gender.append(gender_num)
-                gender_result = ','.join(new_db_gender)
-                
-                latest_data.age = age_result
-                latest_data.gender = gender_result             
-                latest_data.save()
-               
-            except PreferenceInfo.DoesNotExist:
-                PreferenceInfo.objects.create(flavor='0,0,0,0,0,0', flavor_num='0,0,0,0,0,0', age="0,0,0,0,0,0,0,0", gender="0,0,0")
-            
+                except PreferenceInfo.DoesNotExist:
+                    PreferenceInfo.objects.create(flavor='0,0,0,0,0,0', flavor_num='0,0,0,0,0,0', age="0,0,0,0,0,0,0,0", gender="0,0,0")
+            except:
+                pass
             return Response(data={'user_uuid':serializer.data['uuid']}, status=status.HTTP_201_CREATED)
             # 새로운 유저는 프론트에서 정보입력 페이지로 가야한다.
 
