@@ -17,6 +17,7 @@ from django.db import transaction
 from myflavors.models import Myflavor
 from flavors.models import Flavor
 from django.core.cache import cache
+from bookmarks.models import Bookmark
 
 
 def get_tokens_for_user(user):
@@ -361,7 +362,11 @@ class DeleteAccountView(APIView):
                 
                 if user.yellow_card == 3:
                     BannedUser.objects.create(username = user.username)
-                    
+                
+                try:
+                    related_bookmark_owners = [bookmark.owner for bookmark in Bookmark.objects.filter(target = user_id)]
+                except:
+                    pass
                 user.delete()
                 
                 now = timezone.now().strftime('%Y-%m-%d')
@@ -383,11 +388,14 @@ class DeleteAccountView(APIView):
        
                 #캐시삭제
                 try:
+                    for owner_id in related_bookmark_owners:
+                        cache.delete(f'bookmarks_{owner_id}')
                     cache.delete(f'sender_msg_{user_id}')
                     cache.delete(f'receiver_msg_{user_id}')
                     cache.delete(f'flavors_{user_id}')
                     cache.delete(f'change_flavor_{user_id}')
                     cache.delete(f'bookmarks_{user_id}')
+                    
                 except:
                     pass
                 
@@ -438,6 +446,16 @@ class EditNicknameView(APIView):
             serializer = serializers.UserEditNicknameSerializer(user, copy_data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            
+            try:
+                related_bookmark_owners = [bookmark.owner for bookmark in Bookmark.objects.filter(target = user_id)]
+                
+                for owner_id in related_bookmark_owners:
+                    cache.delete(f'bookmarks_{owner_id}')
+            except:
+                pass
+            
+            
             return Response(data=serializer.data, status=status.HTTP_200_OK) 
             
         except User.DoesNotExist:
