@@ -27,7 +27,7 @@ class SendMsgView(APIView) :
         except User.DoesNotExist:
             return Response(data={'error':'this user does not exist'}, status=status.HTTP_404_NOT_FOUND)
         
-        now = timezone.localtime().strftime('%Y-%m-%d')
+        now = timezone.now().strftime('%Y-%m-%d')
         
         count = cache.get(f'count_{user_id}_{copy_data["receiver"]}_{now}')
         if count is None:
@@ -189,7 +189,7 @@ class RemainMsgView(APIView) :
         user_id = request.user.id
         user = User.objects.get(id = user_id)
         # user_id = 7
-        now = timezone.localtime().strftime('%Y-%m-%d')
+        now = timezone.now().strftime('%Y-%m-%d')
         count = cache.get(f'count_{user_id}_{request.data["receiver"]}_{now}')
         if count is None:
             today_msgs = Message.objects.filter(created_at__contains = now)    
