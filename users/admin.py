@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, TemporalNickname, BannedUser, SiteInfo
+from .models import User, TemporalNickname, BannedUser, SiteInfo, PreferenceInfo
 from django.contrib.auth.admin import UserAdmin
 
 
@@ -51,4 +51,8 @@ class BannedUserAdmin(admin.ModelAdmin):
 @admin.register(SiteInfo)
 class SiteInfoAdmin(admin.ModelAdmin):  
     list_display = ('id', 'today_user', 'realtime_user', 'current_user', 'total_user', 'created_at', 'updated_at')
+
+@admin.register(PreferenceInfo)
+class PreferenceInfoAdmin(admin.ModelAdmin):  
+    list_display = ('id', 'flavor', 'flavor_num', 'age', 'gender', )
   
