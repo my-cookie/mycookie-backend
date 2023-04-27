@@ -78,16 +78,18 @@ class SendMsgView(APIView) :
             cache.set(f'count_{user_id}_{copy_data["receiver"]}_{now}', count+1, 60*60*24)
             
             try:
-                latest_data = SiteInfo.objects.last()
-                if latest_data.created_at.strftime('%Y-%m-%d') == now:  
                 
-                    latest_data.today_message += 1
-                    latest_data.today_success_message += 1
-                    latest_data.save()
-                else:
+                latest_data = SiteInfo.objects.last()
+                if latest_data is not None:
+                    if latest_data.created_at.strftime('%Y-%m-%d') == now:  
                     
-                    latest_data = SiteInfo.objects.latest('id')
-                    SiteInfo.objects.create(today_message = 1, today_success_message = 1, today_user=1, today_visit_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
+                        latest_data.today_message += 1
+                        latest_data.today_success_message += 1
+                        latest_data.save()
+                    else:
+                        
+                        latest_data = SiteInfo.objects.latest('id')
+                        SiteInfo.objects.create(today_message = 1, today_success_message = 1, today_user=1, today_visit_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
             except SiteInfo.DoesNotExist:
                 number_user = User.objects.all().count()
                 SiteInfo.objects.create(today_message = 1, today_success_message = 1, today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)
@@ -101,15 +103,17 @@ class SendMsgView(APIView) :
             serializer.save()
             cache.set(f'count_{user_id}_{copy_data["receiver"]}_{now}', count+1, 60*60*24)
             try:
-                latest_data = SiteInfo.objects.last()
-                if latest_data.created_at.strftime('%Y-%m-%d') == now:  
                 
-                    latest_data.today_message += 1
-                    latest_data.save()
-                else:
+                latest_data = SiteInfo.objects.last()
+                if latest_data is not None:
+                    if latest_data.created_at.strftime('%Y-%m-%d') == now:  
                     
-                    latest_data = SiteInfo.objects.latest('id')
-                    SiteInfo.objects.create(today_message = 1, today_user=1, today_visit_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
+                        latest_data.today_message += 1
+                        latest_data.save()
+                    else:
+                        
+                        latest_data = SiteInfo.objects.latest('id')
+                        SiteInfo.objects.create(today_message = 1, today_user=1, today_visit_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
             except SiteInfo.DoesNotExist:
                 number_user = User.objects.all().count()
                 SiteInfo.objects.create(today_message = 1, today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)

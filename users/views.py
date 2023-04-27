@@ -106,15 +106,15 @@ class KakaoLoginView(APIView) :
                 now = timezone.now().strftime('%Y-%m-%d')
                 try:
                     latest_data = SiteInfo.objects.last()
-                    
-                    if latest_data.created_at.strftime('%Y-%m-%d') == now:
-                        latest_data.today_visit_user += 1
-                        if user.last_login.strftime('%Y-%m-%d') != now:
-                            latest_data.today_user += 1
-                        latest_data.save()
-                    else:
-                        
-                        SiteInfo.objects.create(today_user=1, today_visit_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
+                    if latest_data is not None: 
+                        if latest_data.created_at.strftime('%Y-%m-%d') == now:
+                            latest_data.today_visit_user += 1
+                            if user.last_login.strftime('%Y-%m-%d') != now:
+                                latest_data.today_user += 1
+                            latest_data.save()
+                        else:
+                            
+                            SiteInfo.objects.create(today_user=1, today_visit_user=1, current_user=latest_data.current_user, total_user=latest_data.total_user)
                 except SiteInfo.DoesNotExist:
                     number_user = User.objects.all().count()
                     SiteInfo.objects.create(today_user=1, today_visit_user=1, current_user=number_user, total_user=number_user)
@@ -275,18 +275,19 @@ class UserInfoRegisterView(APIView) :
             
             try: 
                 latest_data = SiteInfo.objects.last()
-                if latest_data.created_at.strftime('%Y-%m-%d') == now:
+                if latest_data is not None: 
+                    if latest_data.created_at.strftime('%Y-%m-%d') == now:
 
-                    latest_data.today_user += 1
-                    latest_data.today_visit_user += 1
-                    latest_data.today_register_user += 1
-                    latest_data.current_user += 1
-                    latest_data.total_user += 1
-                    latest_data.save()
-                else:
-                    
-                    latest_data = SiteInfo.objects.latest('id')
-                    SiteInfo.objects.create(today_user=1, today_visit_user=1, today_register_user=1, current_user=latest_data.current_user+1, total_user=latest_data.total_user+1)
+                        latest_data.today_user += 1
+                        latest_data.today_visit_user += 1
+                        latest_data.today_register_user += 1
+                        latest_data.current_user += 1
+                        latest_data.total_user += 1
+                        latest_data.save()
+                    else:
+                        
+                        latest_data = SiteInfo.objects.latest('id')
+                        SiteInfo.objects.create(today_user=1, today_visit_user=1, today_register_user=1, current_user=latest_data.current_user+1, total_user=latest_data.total_user+1)
             except SiteInfo.DoesNotExist:
                 number_user = User.objects.all().count()
                 SiteInfo.objects.create(today_user=1, today_visit_user=1, today_register_user=1, current_user=number_user, total_user=number_user)
@@ -376,15 +377,16 @@ class DeleteAccountView(APIView):
                 now = timezone.now().strftime('%Y-%m-%d')
                 try:
                     latest_data = SiteInfo.objects.last()
-                    if latest_data.created_at.strftime('%Y-%m-%d') == now:
+                    if latest_data is not None: 
+                        if latest_data.created_at.strftime('%Y-%m-%d') == now:
 
-                        latest_data.current_user -= 1
-                        latest_data.today_drop_user += 1
-                        latest_data.save()
-                    else:
-                    
-                        latest_data = SiteInfo.objects.latest('id')
-                        SiteInfo.objects.create(today_user=1, today_visit_user=1, today_drop_user=1, current_user=latest_data.current_user-1, total_user=latest_data.total_user)
+                            latest_data.current_user -= 1
+                            latest_data.today_drop_user += 1
+                            latest_data.save()
+                        else:
+                        
+                            latest_data = SiteInfo.objects.latest('id')
+                            SiteInfo.objects.create(today_user=1, today_visit_user=1, today_drop_user=1, current_user=latest_data.current_user-1, total_user=latest_data.total_user)
                 except SiteInfo.DoesNotExist:
                     number_user = User.objects.all().count()
                     SiteInfo.objects.create(today_user=1, today_visit_user=1, today_drop_user=1, current_user=number_user, total_user=number_user)
