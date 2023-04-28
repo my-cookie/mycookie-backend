@@ -5,7 +5,7 @@ from .models import Message, Spam
 class MessageAdmin(admin.ModelAdmin):  
     list_display = ('id', 'sender', 'receiver', 'flavor', 'is_anonymous', 'content', 'is_success', 'is_read', 'sender_deleted', 'receiver_deleted','is_spam','created_at',)
     list_filter = ('sender', 'receiver', 'is_success', 'is_read', 'sender_deleted', 'receiver_deleted','is_spam', )
-    search_fields = ('id', 'sender', 'receiver',)
+    search_fields = ('id',)
     
 @admin.register(Spam)
 class SpamAdmin(admin.ModelAdmin):  

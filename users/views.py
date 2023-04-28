@@ -567,17 +567,22 @@ class UserUuidView(APIView):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
     
     
-# @decorators.permission_classes([permissions.IsAuthenticated])                
+@decorators.permission_classes([permissions.IsAuthenticated])                
 class RealtimeUserView(APIView):  
     def get(self, request):
         realtime_user = SiteInfo.objects.latest('realtime_user')
         serializer = serializers.RealtimeUserSerializer(realtime_user)
         try:
             current_connection = cache.get('websocket_list')
+            current_uuids = [chat_room[5:] for chat_room in current_connection]
+            realtime_nickname = User.objects.filter(uuid__in = current_uuids)
+            
+            realtime_nickname_serializer = serializers.UserNicknameSerializer(realtime_nickname, many=True)
+            realtime_nicknames = realtime_nickname_serializer.data
         except:
             current_connection = []
-        return Response(data={'number' : serializer.data, 'nicknames': current_connection}, status=status.HTTP_200_OK)
-                   
+            realtime_nicknames = []
+        return Response(data={'number' : serializer.data, 'nicknames': realtime_nicknames}, status=status.HTTP_200_OK)
              
             
             
