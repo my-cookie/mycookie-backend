@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, TemporalNickname
+from .models import User, TemporalNickname, SiteInfo
 
 
 
@@ -48,4 +48,10 @@ class UserEditNicknameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('nickname', 'is_changable')
+        
+class RealtimeUserSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = SiteInfo
+        fields = ('realtime_user',)
         

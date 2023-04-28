@@ -15,4 +15,5 @@ urlpatterns = [
     path('myflavor/edit', views.EditMyflavorView.as_view()),
     path('myflavor', views.MyflavorView.as_view()),
     path('info/uuid', views.UserUuidView.as_view()),
+    path('siteinfo/realtime', views.RealtimeUserView.as_view()),
 ]

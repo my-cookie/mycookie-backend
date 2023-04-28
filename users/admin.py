@@ -50,7 +50,8 @@ class BannedUserAdmin(admin.ModelAdmin):
     
 @admin.register(SiteInfo)
 class SiteInfoAdmin(admin.ModelAdmin):  
-    list_display = ('id', 'today_user', 'realtime_user', 'current_user', 'total_user', 'created_at', 'updated_at')
+    list_display = ('id', 'realtime_user','today_visit_user', 'today_user', 'today_register_user', 'today_drop_user', 'today_message', 'today_success_message', 'current_user', 'total_user', 'created_at', 'updated_at')
+
 
 @admin.register(PreferenceInfo)
 class PreferenceInfoAdmin(admin.ModelAdmin):  

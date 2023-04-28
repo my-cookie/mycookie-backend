@@ -565,6 +565,18 @@ class UserUuidView(APIView):
         user = User.objects.get(id=user_id)
         serializer = serializers.UserInfoSerializer(user)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+    
+    
+# @decorators.permission_classes([permissions.IsAuthenticated])                
+class RealtimeUserView(APIView):  
+    def get(self, request):
+        realtime_user = SiteInfo.objects.latest('realtime_user')
+        serializer = serializers.RealtimeUserSerializer(realtime_user)
+        try:
+            current_connection = cache.get('websocket_list')
+        except:
+            current_connection = []
+        return Response(data={'number' : serializer.data, 'nicknames': current_connection}, status=status.HTTP_200_OK)
                    
              
             
