@@ -19,7 +19,29 @@ from flavors.models import Flavor
 from django.core.cache import cache
 from bookmarks.models import Bookmark
 
-
+def WebsocketConnect(user_id):
+    user_uuid = User.objects.get(id = user_id).uuid
+    user_chatroom = f'chat_{user_uuid}'
+    user_chatroom = user_chatroom.replace('-','')
+    
+    current_connection = cache.get('websocket_list')
+    if current_connection is None:
+        current_connection = [user_chatroom]
+        cache.set('websocket_list', current_connection, 60*60*24)
+    else:
+        if not user_chatroom in current_connection:
+            current_connection.append(user_chatroom)
+            cache.set('websocket_list', current_connection, 60*60*24)
+    try:
+        now = timezone.now().strftime('%Y-%m-%d')
+        latest_data = SiteInfo.objects.last()
+        if latest_data.created_at.strftime('%Y-%m-%d') == now:
+        
+            latest_data.realtime_user = len(set(current_connection))
+            latest_data.save()
+    except SiteInfo.DoesNotExist:
+        pass 
+    
 def get_tokens_for_user(user):
     
     refresh = RefreshToken.for_user(user)
@@ -47,6 +69,8 @@ def login(user):
     res.data = {"Success" : "Login successfully","tokens":tokens, "user":serializer.data}  
     
     res.status=status.HTTP_200_OK
+    
+    WebsocketConnect(user.id)
     
     return res
 
@@ -577,15 +601,23 @@ class RealtimeUserView(APIView):
             current_uuids = [chat_room[5:] for chat_room in current_connection]
             realtime_nickname = User.objects.filter(uuid__in = current_uuids)
             
-            realtime_nickname_serializer = serializers.UserNicknameSerializer(realtime_nickname, many=True)
+            realtime_nickname_serializer = serializers.UserNickSearchSerializer(realtime_nickname, many=True)
             realtime_nicknames = realtime_nickname_serializer.data
         except:
-            current_connection = []
+            
             realtime_nicknames = []
         return Response(data={'number' : serializer.data, 'nicknames': realtime_nicknames}, status=status.HTTP_200_OK)
              
-            
-            
+             
+             
+               
+      
+@decorators.permission_classes([permissions.IsAuthenticated])                
+class WebsocketReconnectView(APIView):  
+    def get(self, request):
+        user_id = request.user.id 
+        WebsocketConnect(user_id)               
+        return Response(data='socket ok', status=status.HTTP_200_OK)
             
             
  

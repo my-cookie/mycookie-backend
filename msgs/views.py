@@ -8,6 +8,8 @@ from django.utils import timezone
 from django.db import transaction
 from django.core.cache import cache
 from config import settings
+from users.views import WebsocketConnect
+
 
 #db저장과 동시에 성공여부를 반환한다. 성공일 시 프론트에서 websocket요청
 
@@ -398,7 +400,14 @@ class SingleReceiverMessageView(APIView) :
         message_id = request.GET.get('message_id', None)
         msgs = Message.objects.get(id=message_id)
         serializer = serializers.ReceiverMsgSerializer(msgs)
+        WebsocketConnect(request.user.id)
         return Response(data=serializer.data, status=status.HTTP_200_OK) 
-
-        
-            
+    
+@decorators.permission_classes([permissions.IsAuthenticated])
+class SingleSenderMessageView(APIView) : 
+    def get(self, request):
+        message_id = request.GET.get('message_id', None)
+        msgs = Message.objects.get(id=message_id)
+        serializer = serializers.SenderMsgSerializer(msgs)
+        WebsocketConnect(request.user.id)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)          

@@ -16,4 +16,6 @@ urlpatterns = [
     path('myflavor', views.MyflavorView.as_view()),
     path('info/uuid', views.UserUuidView.as_view()),
     path('siteinfo/realtime', views.RealtimeUserView.as_view()),
+    path('websocket', views.WebsocketReconnectView.as_view()),
+    
 ]
