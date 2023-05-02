@@ -75,6 +75,12 @@ def login(user):
     return res
 
 def kakao_access(request):
+    if request.data['code'] == settings.GUEST_LOGIN_CODE:
+        import random
+        num = ['1','2','3','4','5']
+        random.shuffle(num)
+        print(num)
+        return ''.join(num)+timezone.now().strftime('%Y%m%d%H%M%S'), None, None
     serializer = serializers.KakaoSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     auth_code = serializer.validated_data["code"]
@@ -112,7 +118,7 @@ def kakao_access(request):
 class KakaoLoginView(APIView) :
     
     def post(self, request):
-                    
+        
         kakao_id, kakao_age, kakao_gender = kakao_access(request)  
         # kakao_id, kakao_age, kakao_gender = 3736378603, None, None        
         banned_user = cache.get('banned_user')
@@ -218,7 +224,7 @@ class NicknameConfirm(APIView) :
         serializer = serializers.NicknameConfirmSerializer(data=copy_data)
         serializer.is_valid(raise_exception=True)
         
-        if '사라진쿠키' in request.data['nickname']:
+        if '사라진쿠키' in request.data['nickname'] :
             return Response(data={'error':'someone already got this nickname'}, status=status.HTTP_206_PARTIAL_CONTENT)
         
         if TemporalNickname.objects.filter(nickname = request.data['nickname']).exists():
