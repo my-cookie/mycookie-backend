@@ -1,11 +1,11 @@
 # mycookie-backend
 쪽지메신저웹 🍪내가만든쿠키🍪 백엔드 서버
 
-배포url: https://make.mycookie.site
+서비배포url: https://make.mycookie.site
 
 기술 스택 : React(프론트엔드) + Django(백엔드)
 
-장고 라이브러리 : daphne, channels, rest_framework, corsheaders, django_crontab
+장고 라이브러리 : daphne, channels, rest_framework, rest_framework_simplejwt, corsheaders, django_crontab
 
 주요 구현 사항:
 
