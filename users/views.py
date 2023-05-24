@@ -27,11 +27,11 @@ def WebsocketConnect(user_id):
     current_connection = cache.get('websocket_list')
     if current_connection is None:
         current_connection = [user_chatroom]
-        cache.set('websocket_list', current_connection, 60*60*24)
+        cache.set('websocket_list', current_connection, 60*60)
     else:
-        if not user_chatroom in current_connection:
-            current_connection.append(user_chatroom)
-            cache.set('websocket_list', current_connection, 60*60*24)
+        # if not user_chatroom in current_connection:
+        current_connection.append(user_chatroom)
+        cache.set('websocket_list', current_connection, 60*60)
     try:
         now = timezone.now().strftime('%Y-%m-%d')
         latest_data = SiteInfo.objects.last()
@@ -343,7 +343,7 @@ class NicknameSearchView(APIView) :
         
         return Response(data=serializer.data, status=status.HTTP_200_OK) 
         
-           
+        
 class CookieTokenRefreshSerializer(jwt_serializers.TokenRefreshSerializer):
     
     refresh = None
@@ -351,6 +351,8 @@ class CookieTokenRefreshSerializer(jwt_serializers.TokenRefreshSerializer):
     def validate(self, attrs):
         attrs['refresh'] = self.context['request'].COOKIES.get('refresh')
         if attrs['refresh']:
+            user_id = RefreshToken(attrs['refresh'])['user_id']
+            WebsocketConnect(user_id)
             return super().validate(attrs)
         else:
             raise jwt_exceptions.InvalidToken(

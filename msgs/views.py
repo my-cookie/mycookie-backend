@@ -11,6 +11,32 @@ from config import settings
 from users.views import WebsocketConnect
 
 
+import functools
+import time
+
+from django.db import connection, reset_queries
+
+def query_debugger(func):
+
+    @functools.wraps(func)
+    def inner_func(*args, **kwargs):
+
+        reset_queries()
+        
+        start_queries = len(connection.queries)
+
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        end = time.perf_counter()
+
+        end_queries = len(connection.queries)
+        
+        print(f"Function : {func.__name__}")
+        print(f"Number of Queries : {end_queries - start_queries}")
+        print(f"Finished in : {(end - start):.2f}s")
+        return result
+
+    return inner_func
 #db저장과 동시에 성공여부를 반환한다. 성공일 시 프론트에서 websocket요청
 
 @decorators.permission_classes([permissions.IsAuthenticated])
@@ -223,9 +249,8 @@ class SenderMsgView(APIView) :
     
 @decorators.permission_classes([permissions.IsAuthenticated])
 class ReceiverMsgView(APIView) :
-    
+    @query_debugger
     def get(self, request):
-        # user_id = 8
         user_id = request.user.id
         msgs = cache.get(f'receiver_msg_{user_id}')
         if msgs is None:
@@ -235,6 +260,7 @@ class ReceiverMsgView(APIView) :
             cache.set(f'receiver_msg_{user_id}', msgs, 60*60*24)
             
         return Response(data=msgs, status=status.HTTP_200_OK)
+   
         
 @decorators.permission_classes([permissions.IsAuthenticated])    
 class SpamReportView(APIView) :

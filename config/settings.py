@@ -27,7 +27,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1','localhost']
+
 
 
 import json
@@ -38,6 +39,7 @@ secrets = json.loads(open(SECRET_BASE_FILE).read())
 SECRET_KEY = secrets['SECRET_KEY']
 KAKAO_REST_API_KEY = secrets["kakao_rest_api_key"]
 KAKAO_REDIRECT_URL = secrets["kakao_redirect_url"]
+GUEST_LOGIN_CODE = secrets["guest_code"]
 # Application definition
 
 INSTALLED_APPS = [
@@ -168,8 +170,8 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
-
-USE_TZ = True
+USE_L10N = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -212,7 +214,7 @@ SIMPLE_JWT = {
     "JTI_CLAIM": "jti",
 
     "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=60),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 
     "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
@@ -227,9 +229,9 @@ SIMPLE_JWT = {
     # Cookie name. Enables cookies if value is set.
     'AUTH_COOKIE_REFRESH': 'refresh',
     # A string like "example.com", or None for standard domain cookie. 나중에 client domain 주소로 수정
-    'AUTH_COOKIE_DOMAIN': '.mycookie.site',
+    'AUTH_COOKIE_DOMAIN': None,
     # # Whether the auth cookies should be secure (https:// only).
-    'AUTH_COOKIE_SECURE': True, 
+    'AUTH_COOKIE_SECURE': False, 
     # # Http only cookie flag.It's not fetch by javascript.
     'AUTH_COOKIE_HTTP_ONLY': True,
     'AUTH_COOKIE_PATH': '/',        # The path of the auth cookie.
@@ -238,7 +240,7 @@ SIMPLE_JWT = {
 }
 
 # CORS 관련 추가
-CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000','http://localhost:3000', 'https://www.mycookie.site']
+CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000','http://localhost:3000', 'https://make.mycookie.site', 'https://mycookie.site']
 CORS_ALLOW_CREDENTIALS = True #쿠키가 cross-site HTTP 요청에 포함될 수 있다
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -248,10 +250,12 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+CSRF_TRUSTED_ORIGINS = ['https://mycookie.site']
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 #커스텀유저
 AUTH_USER_MODEL = "users.User"
+
 
 #쿼리기록
 LOGGING = {

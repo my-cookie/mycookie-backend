@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from dashboard.views import chart
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -23,5 +24,6 @@ urlpatterns = [
     path("api/flavor/", include("flavors.urls")),
     path("api/bookmark/", include("bookmarks.urls")),
     path("api/feedback/", include("feedbacks.urls")),
+    path("dashboard/", chart),
     
 ]

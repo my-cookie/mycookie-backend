@@ -4,6 +4,8 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.utils import timezone
 from users.models import SiteInfo
+from django.core.cache import cache
+
 
 
 class MessegeRoomConsumer(WebsocketConsumer):
@@ -18,7 +20,24 @@ class MessegeRoomConsumer(WebsocketConsumer):
         )
         self.accept()  
         
-       
+        # current_connection = cache.get('websocket_list')
+        # if current_connection is None:
+        #     current_connection = [self.room_group_name]
+        #     cache.set('websocket_list', current_connection, 60*60*24)
+        # else:
+        #     # if not self.room_group_name in current_connection:
+        #     current_connection.append(self.room_group_name)
+        #     cache.set('websocket_list', current_connection, 60*60*24)
+        # try:
+        #     now = timezone.now().strftime('%Y-%m-%d')
+        #     latest_data = SiteInfo.objects.last()
+        #     if latest_data.created_at.strftime('%Y-%m-%d') == now:
+            
+        #         latest_data.realtime_user = len(set(current_connection))
+        #         latest_data.save()
+        # except SiteInfo.DoesNotExist:
+        #     pass          
+      
         
     def disconnect(self, close_code):
         # Leave room group
@@ -27,9 +46,43 @@ class MessegeRoomConsumer(WebsocketConsumer):
             self.channel_name
         )
         
-     
+        try:
+            current_connection = cache.get('websocket_list')
+            current_connection = [room for room in current_connection if room != self.room_group_name]
+            cache.set('websocket_list', current_connection, 60*60)
+            
+            
+            try:
+                now = timezone.now().strftime('%Y-%m-%d')
+                latest_data = SiteInfo.objects.last()
+                if latest_data.created_at.strftime('%Y-%m-%d') == now:
+                
+                    latest_data.realtime_user = len(set(current_connection))
+                    latest_data.save()
+            except SiteInfo.DoesNotExist:
+                pass
+        except:
+            pass
+        
+
     def receive(self, text_data):
         # Receive message from WebSocket
+        # try:
+        #     current_connection = cache.get('websocket_list')
+        #     current_connection.remove(self.room_group_name)
+        #     cache.set('websocket_list', current_connection, 60*60*24)
+            
+        #     try:
+        #         now = timezone.now().strftime('%Y-%m-%d')
+        #         latest_data = SiteInfo.objects.last()
+        #         if latest_data.created_at.strftime('%Y-%m-%d') == now:
+                
+        #             latest_data.realtime_user = len(set(current_connection))
+        #             latest_data.save()
+        #     except SiteInfo.DoesNotExist:
+        #         pass
+        # except:
+        #     pass
         text_data_json = json.loads(text_data)
         # 메시지 읽음 처리: 받은 사람이 메시지를 클릭하면 post & websocket(sender_uuid) 연결
         if 'is_read' in text_data_json:
@@ -62,7 +115,22 @@ class MessegeRoomConsumer(WebsocketConsumer):
 
     def chat_message(self, event):    #in comming messate의 "type" 과 동일한 함수 이름
         # Receive message from room group
-        
+        # try:
+        #     current_connection = cache.get('websocket_list')
+        #     current_connection.remove(self.room_group_name)
+        #     cache.set('websocket_list', current_connection, 60*60*24)
+    
+        #     try:
+        #         now = timezone.now().strftime('%Y-%m-%d')
+        #         latest_data = SiteInfo.objects.last()
+        #         if latest_data.created_at.strftime('%Y-%m-%d') == now:
+                
+        #             latest_data.realtime_user = len(set(current_connection))
+        #             latest_data.save()
+        #     except SiteInfo.DoesNotExist:
+        #         pass
+        # except:
+        #     pass
         # 메시지 읽음 처리: 프론트에서 해당 메시지 번호에 대한 디스플레이를 읽음으로 바꾼다
         if 'is_read' in event:
             msg_id = event['msg_id']
